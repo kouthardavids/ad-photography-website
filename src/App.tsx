@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Nav from "./components/Nav";
 import Home from "./pages/Home";
 import Portfolio from "./pages/Portfolio";
 import Services from "./pages/Services";
@@ -9,6 +10,7 @@ import Booking from "./pages/Booking";
 export default function App() {
   return (
     <BrowserRouter>
+      <Nav />
       <Routes>
         <Route
           path="/"

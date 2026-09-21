@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import Nav from "../components/Nav";
 
 const SLIDES = [
     {
@@ -22,14 +23,6 @@ const SLIDES = [
 ];
 
 const SLIDE_DURATION = 5400;
-const NAV_LINKS_LEFT = [
-    { label: "About", to: "/about" },
-    { label: "Portfolio", to: "/portfolio" },
-];
-const NAV_LINKS_RIGHT = [
-    { label: "Services", to: "/services" },
-    { label: "Contact", to: "/contact" },
-];
 
 export default function Home() {
     const [index, setIndex] = useState(0);
@@ -78,32 +71,9 @@ export default function Home() {
                 </motion.div>
             </AnimatePresence>
 
-            {/* Legibility scrim */}
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 via-black/10 to-black/50" />
 
-            {/* Nav */}
-            <header className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-6 py-6 text-white sm:px-10 sm:py-8">
-                <nav className="hidden gap-8 text-[15px] font-medium uppercase tracking-[0.2em] sm:flex">
-                    {NAV_LINKS_LEFT.map((link) => (
-                        <Link key={link.to} to={link.to} className="opacity-90 transition hover:opacity-100">
-                            {link.label}
-                        </Link>
-                    ))}
-                </nav>
-
-                <nav className="hidden gap-8 text-[15px] font-medium uppercase tracking-[0.2em] sm:flex">
-                    {NAV_LINKS_RIGHT.map((link) => (
-                        <Link key={link.to} to={link.to} className="opacity-90 transition hover:opacity-100">
-                            {link.label}
-                        </Link>
-                    ))}
-                </nav>
-
-                <button className="sm:hidden" aria-label="Open menu">
-                    <span className="block h-px w-6 bg-white" />
-                    <span className="mt-1.5 block h-px w-6 bg-white" />
-                </button>
-            </header>
+            <Nav />
 
             <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center text-white">
                 <motion.h1
