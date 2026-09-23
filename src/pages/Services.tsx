@@ -59,7 +59,7 @@ export default function Services() {
     const [openFaq, setOpenFaq] = useState<number | null>(null);
 
     return (
-        <div>
+        <div data-nav-theme="light" id="services">
             <FadeUp>
                 <section className="mx-auto max-w-3xl px-6 py-16 text-center">
                     <h1

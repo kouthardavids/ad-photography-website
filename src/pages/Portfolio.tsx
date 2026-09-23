@@ -27,7 +27,7 @@ export default function Portfolio() {
     const gap = isMdUp ? 12 : isSmUp ? 8 : 6;
 
     return (
-        <Box>
+        <Box data-nav-theme="light" id="portfolio">
             <Box sx={{ position: 'relative', maxWidth: 1152, mx: 'auto', px: { xs: 2, sm: 3 }, py: { xs: 5, sm: 8 }, textAlign: 'center' }}>
                 <p
                     className="text-3xl font-light tracking-wide sm:text-5xl"

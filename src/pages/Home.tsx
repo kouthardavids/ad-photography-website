@@ -47,6 +47,8 @@ export default function Home() {
 
     return (
         <section
+            id="home"
+            data-nav-theme="dark"
             className="relative h-screen w-full overflow-hidden bg-neutral-950"
             aria-roledescription="carousel"
             aria-label="AD Photography — featured work"

@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Nav from "./components/Nav";
 import Home from "./pages/Home";
 import Portfolio from "./pages/Portfolio";
 import Services from "./pages/Services";
@@ -14,7 +13,7 @@ export default function App() {
         <Route
           path="/"
           element={
-            <div className="min-h-screen bg-[#FBF9F5] font-sans text-neutral-900">
+            <div className="min-h-screen bg-white font-sans text-neutral-900">
               <Home />
               <Portfolio />
               <Services />

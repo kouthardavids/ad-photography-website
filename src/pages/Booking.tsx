@@ -88,7 +88,7 @@ export default function Booking() {
         "w-full rounded-md border border-neutral-200 px-4 py-3 text-sm text-neutral-900 outline-none transition focus:border-neutral-900";
 
     return (
-        <div className="min-h-screen bg-[#FBF9F5]">
+        <div data-nav-theme="light" className="min-h-screen bg-white">
             <div className="fixed inset-y-0 left-0 hidden w-1/3 lg:block">
                 <img
                     src="https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=2400"

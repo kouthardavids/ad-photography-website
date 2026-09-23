@@ -1,68 +1,132 @@
-import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
 import { Menu, X } from "lucide-react";
-import { BRAND } from "../lib/data";
 
 const NAV_LINKS_LEFT = [
-    { label: "Home", to: "/" },
-    { label: "About", to: "/about" },
-    { label: "Services", to: "/services" },
+    { label: "Home", to: "/", id: "home" },
+    { label: "About", to: "/about", id: "about" },
+    { label: "Services", to: "/services", id: "services" },
 ];
+
 const NAV_LINKS_RIGHT = [
-    { label: "Portfolio", to: "/portfolio" },
-    { label: "Testimonals", to: "/testimonals" },
-    { label: "Contact", to: "/contact" },
+    { label: "Portfolio", to: "/portfolio", id: "portfolio" },
+    { label: "Testimonials", to: "/testimonials", id: "testimonials" },
+    { label: "Contact", to: "/contact", id: "contact" },
 ];
+
 const ALL_LINKS = [...NAV_LINKS_LEFT, ...NAV_LINKS_RIGHT];
+
+const NAV_HEIGHT = 88;
 
 export default function Nav() {
     const [open, setOpen] = useState(false);
-    const [scrolled, setScrolled] = useState(false);
-    const { pathname } = useLocation();
+    const [theme, setTheme] = useState<"light" | "dark">("dark");
+    const [activeId, setActiveId] = useState("home");
+
+    const observerRef = useRef<IntersectionObserver | null>(null);
 
     useEffect(() => {
-        const onScroll = () => setScrolled(window.scrollY > 40);
-        onScroll();
-        window.addEventListener("scroll", onScroll, { passive: true });
-        return () => window.removeEventListener("scroll", onScroll);
+        const sections = Array.from(
+            document.querySelectorAll<HTMLElement>("[data-nav-theme]")
+        );
+
+        if (sections.length === 0) return;
+
+        observerRef.current = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        const sectionTheme =
+                            entry.target.getAttribute("data-nav-theme");
+
+                        if (
+                            sectionTheme === "light" ||
+                            sectionTheme === "dark"
+                        ) {
+                            setTheme(sectionTheme);
+                        }
+
+                        if (entry.target.id) {
+                            setActiveId(entry.target.id);
+                        }
+                    }
+                });
+            },
+            {
+                rootMargin: `-${NAV_HEIGHT}px 0px -${typeof window !== "undefined"
+                    ? window.innerHeight - NAV_HEIGHT - 1
+                    : 0
+                    }px 0px`,
+                threshold: 0,
+            }
+        );
+
+        sections.forEach((section) =>
+            observerRef.current!.observe(section)
+        );
+
+        return () => observerRef.current?.disconnect();
     }, []);
+
+    const isLight = theme === "light";
+
+    const handleNavClick = (
+        event: React.MouseEvent<HTMLAnchorElement>,
+        id: string,
+        path: string
+    ) => {
+        event.preventDefault();
+
+        const section = document.getElementById(id);
+
+        if (section) {
+            section.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+            });
+
+            window.history.pushState({}, "", path);
+            setActiveId(id);
+        }
+
+        setOpen(false);
+    };
 
     return (
         <header
-            className={`fixed inset-x-0 top-0 z-50 flex items-center justify-between px-6 py-6 text-white transition-colors duration-300 sm:px-10 sm:py-8 ${scrolled ? "bg-neutral-950/95 backdrop-blur" : "bg-transparent"
+            className={`fixed inset-x-0 top-0 z-50 flex items-center justify-between px-6 py-6 transition-colors duration-150 ease-out sm:px-10 sm:py-8 ${isLight
+                ? "bg-white text-neutral-900"
+                : "bg-transparent text-white"
                 }`}
         >
             <nav className="hidden gap-12 text-[15px] font-medium uppercase tracking-[0.2em] sm:flex">
                 {NAV_LINKS_LEFT.map((link) => (
-                    <Link
-                        key={link.to}
-                        to={link.to}
-                        className={`opacity-90 transition hover:opacity-100 ${pathname === link.to ? "opacity-100" : ""
+                    <a
+                        key={link.id}
+                        href={link.to}
+                        onClick={(e) =>
+                            handleNavClick(e, link.id, link.to)
+                        }
+                        className={`cursor-pointer opacity-90 transition hover:opacity-100 ${activeId === link.id ? "opacity-100" : ""
                             }`}
                     >
                         {link.label}
-                    </Link>
+                    </a>
                 ))}
             </nav>
 
-            <Link
-                to="/"
-                className="text-lg tracking-[0.15em] text-white sm:hidden"
-                style={{ fontFamily: "'Cormorant Garamond', serif" }}
-            >
-                {BRAND.name.toUpperCase()}
-            </Link>
-
             <nav className="hidden items-center gap-12 text-[15px] font-medium uppercase tracking-[0.2em] sm:flex">
                 {NAV_LINKS_RIGHT.map((link) => (
-                    <Link
-                        key={link.to}
-                        to={link.to}
-                        className={`opacity-90 transition hover:opacity-100 ${pathname === link.to ? "opacity-100" : ""
+                    <a
+                        key={link.id}
+                        href={link.to}
+                        onClick={(e) =>
+                            handleNavClick(e, link.id, link.to)
+                        }
+                        className={`cursor-pointer opacity-90 transition hover:opacity-100 ${activeId === link.id ? "opacity-100" : ""
                             }`}
                     >
                         {link.label}
-                    </Link>
+                    </a>
                 ))}
             </nav>
 
@@ -71,23 +135,41 @@ export default function Nav() {
                 aria-label={open ? "Close menu" : "Open menu"}
                 onClick={() => setOpen((o) => !o)}
             >
-                {open ? <X size={22} color="white" /> : <Menu size={22} color="white" />}
+                {open ? (
+                    <X
+                        size={22}
+                        color={isLight ? "#171717" : "white"}
+                    />
+                ) : (
+                    <Menu
+                        size={22}
+                        color={isLight ? "#171717" : "white"}
+                    />
+                )}
             </button>
 
             {open && (
-                <nav className="absolute inset-x-0 top-full flex flex-col gap-1 border-t border-white/20 bg-neutral-950/95 px-6 py-4 text-sm uppercase tracking-[0.15em] text-white backdrop-blur sm:hidden">
+                <nav className="absolute inset-x-0 top-full flex flex-col gap-1 border-t border-neutral-200 bg-neutral-950/95 px-6 py-4 text-sm uppercase tracking-[0.15em] text-white backdrop-blur sm:hidden">
                     {ALL_LINKS.map((link) => (
-                        <Link key={link.to} to={link.to} onClick={() => setOpen(false)} className="py-2.5">
+                        <a
+                            key={link.id}
+                            href={link.to}
+                            onClick={(e) =>
+                                handleNavClick(e, link.id, link.to)
+                            }
+                            className="cursor-pointer py-2.5"
+                        >
                             {link.label}
-                        </Link>
+                        </a>
                     ))}
-                    <Link
-                        to="/booking"
+
+                    <a
+                        href="/booking"
                         onClick={() => setOpen(false)}
                         className="mt-2 border border-white/70 px-4 py-3 text-center"
                     >
                         Book a Session
-                    </Link>
+                    </a>
                 </nav>
             )}
         </header>

@@ -8,7 +8,7 @@ const BTS_IMAGES = [
 
 export default function About() {
     return (
-        <div>
+        <div data-nav-theme="light" id="about">
             <section className="mx-auto grid max-w-5xl gap-12 px-6 py-16 sm:grid-cols-2 sm:items-center">
                 <div className="aspect-[4/5] overflow-hidden bg-neutral-100">
                     <img
