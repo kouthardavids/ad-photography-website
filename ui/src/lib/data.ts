@@ -42,26 +42,43 @@ export interface Package {
 
 export const PACKAGES: Package[] = [
     {
-        id: "essential",
-        name: "Essential",
-        price: "R 4,500",
-        description: "A focused single-location session, ideal for portraits and small families.",
-        features: ["1.5 hour session", "1 location", "40+ edited images", "Online gallery, 30-day access"],
+        id: "standard",
+        name: "Standard",
+        price: "R800/hour",
+        description: "A simple one-hour photography session, ideal for portraits, birthdays, and small family shoots.",
+        features: [
+            "1 hour session",
+            "1 location",
+            "Edited images",
+            "Online gallery",
+        ],
     },
     {
         id: "signature",
         name: "Signature",
-        price: "R 9,800",
-        description: "Our most-booked package — full coverage for weddings and half-day events.",
-        features: ["4 hour coverage", "2 locations", "150+ edited images", "Online gallery, 1-year access", "Print release included"],
+        price: "From R 1,500",
+        description: "Extended photography coverage for clients who want more time to capture their special moments.",
+        features: [
+            "2+ hour session",
+            "Location-dependent discount",
+            "Multiple locations available",
+            "Edited images",
+            "Online gallery",
+        ],
         highlighted: true,
     },
     {
-        id: "complete",
-        name: "Complete",
-        price: "R 16,500",
-        description: "Full-day coverage for weddings that need the whole story told.",
-        features: ["8 hour coverage", "Unlimited locations", "350+ edited images", "Online gallery, lifetime access", "Second shooter included", "Printed album (20 pages)"],
+        id: "wedding",
+        name: "Wedding",
+        price: "From R 1,500",
+        description: "Photography coverage for your special day, with pricing adjusted according to the location and coverage required.",
+        features: [
+            "Wedding photography coverage",
+            "Location-dependent pricing",
+            "Flexible coverage duration",
+            "Edited images",
+            "Online gallery",
+        ],
     },
 ];
 

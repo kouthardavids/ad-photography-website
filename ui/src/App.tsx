@@ -5,6 +5,7 @@ import Services from "./pages/Services";
 import About from "./pages/About";
 import Footer from "./components/Footer";
 import Booking from "./pages/Booking";
+import Testimonials from "./pages/Testimonals";
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
             <div className="min-h-screen bg-white font-sans text-neutral-900">
               <Home />
               <Portfolio />
+              <Testimonials />
               <Services />
               <About />
               <Footer />

@@ -10,7 +10,7 @@ const NAV_LINKS_LEFT = [
 const NAV_LINKS_RIGHT = [
     { label: "Portfolio", to: "/portfolio", id: "portfolio" },
     { label: "Testimonials", to: "/testimonials", id: "testimonials" },
-    { label: "Contact", to: "/contact", id: "contact" },
+    { label: "Contact", to: "/about", id: "about" },
 ];
 
 const ALL_LINKS = [...NAV_LINKS_LEFT, ...NAV_LINKS_RIGHT];

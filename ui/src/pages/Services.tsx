@@ -69,7 +69,7 @@ export default function Services() {
                         Services &amp; Pricing
                     </h1>
                     <p className="mt-3 text-sm text-neutral-500">
-                        Three packages, no hidden extras. Custom quotes available for multi-day events.
+                        Flexible photography packages with pricing tailored to your session, duration, and location.
                     </p>
                 </section>
             </FadeUp>
@@ -124,7 +124,7 @@ export default function Services() {
             <section className="bg-[#F3EEE6] px-6 py-16">
                 <div className="mx-auto max-w-2xl">
                     <FadeUp>
-                        <h2 className="text-center text-2xl" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+                        <h2 className="text-center text-3xl" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
                             Frequently asked
                         </h2>
                     </FadeUp>
@@ -136,13 +136,22 @@ export default function Services() {
                                         onClick={() => setOpenFaq(openFaq === i ? null : i)}
                                         className="flex w-full items-center justify-between py-4 text-left"
                                     >
-                                        <span className="text-sm font-medium text-neutral-900">{f.q}</span>
+                                        <span className="text-base font-medium text-neutral-900">
+                                            {f.q}
+                                        </span>
+
                                         <ChevronDown
                                             size={16}
-                                            className={`shrink-0 transition-transform ${openFaq === i ? "rotate-180" : ""}`}
+                                            className={`shrink-0 transition-transform ${openFaq === i ? "rotate-180" : ""
+                                                }`}
                                         />
                                     </button>
-                                    {openFaq === i && <p className="pb-4 text-sm text-neutral-600">{f.a}</p>}
+
+                                    {openFaq === i && (
+                                        <p className="pb-4 text-base text-neutral-800">
+                                            {f.a}
+                                        </p>
+                                    )}
                                 </div>
                             </FadeUp>
                         ))}
