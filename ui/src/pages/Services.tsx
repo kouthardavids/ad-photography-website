@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Check, ChevronDown } from "lucide-react";
 import { PACKAGES, FAQS } from "../lib/data";
+import DealsPopup from "../components/DealsPopup";
 
 function useInView<T extends HTMLElement>(threshold = 0.10) {
     const ref = useRef<T | null>(null);
@@ -148,7 +149,7 @@ export default function Services() {
                                     </button>
 
                                     {openFaq === i && (
-                                        <p className="pb-4 text-base text-neutral-800">
+                                        <p className="pb-4 text-base text-neutral-800 whitespace-pre-line">
                                             {f.a}
                                         </p>
                                     )}
@@ -158,6 +159,7 @@ export default function Services() {
                     </div>
                 </div>
             </section>
+            <DealsPopup targetId="services" />
         </div>
     );
 }

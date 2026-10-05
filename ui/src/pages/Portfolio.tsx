@@ -6,16 +6,7 @@ import ImageList from '@mui/material/ImageList';
 import ImageListItem from '@mui/material/ImageListItem';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
-import { motion } from 'motion/react';
-import { InView } from '../components/InView';
 import { PORTFOLIO_IMAGES } from '../lib/data';
-
-const MotionImageListItem = motion(ImageListItem);
-
-const tileVariants = {
-    hidden: { opacity: 0, scale: 0.9, filter: 'blur(10px)' },
-    visible: { opacity: 1, scale: 1, filter: 'blur(0px)' },
-};
 
 export default function Portfolio() {
     const theme = useTheme();
@@ -55,53 +46,42 @@ export default function Portfolio() {
             </Box>
 
             <Box sx={{ maxWidth: 1152, mx: 'auto', px: { xs: 1, sm: 3 }, pb: { xs: 6, sm: 10 } }}>
-                <InView
-                    viewOptions={{ once: true, margin: '0px 0px -120px 0px' }}
-                    variants={{
-                        hidden: { opacity: 0 },
-                        visible: {
-                            opacity: 1,
-                            transition: { staggerChildren: 0.09 },
-                        },
+                <ImageList
+                    variant="quilted"
+                    cols={cols}
+                    gap={gap}
+                    rowHeight={rowHeight}
+                    sx={{
+                        overflow: 'visible',
+                        m: 0,
                     }}
                 >
-                    <ImageList
-                        variant="quilted"
-                        cols={cols}
-                        gap={gap}
-                        rowHeight={rowHeight}
-                        sx={{
-                            overflow: 'visible',
-                            m: 0,
-                        }}
-                    >
-                        {PORTFOLIO_IMAGES.map((img, i) => {
-                            const isHero = i % 3 === 1;
-                            return (
-                                <MotionImageListItem
-                                    key={img.id}
-                                    rows={isHero ? 2 : 1}
-                                    cols={1}
-                                    variants={tileVariants}
-                                    transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                                >
-                                    <img
-                                        src={img.src}
-                                        alt={img.alt}
-                                        loading="lazy"
-                                        style={{
-                                            height: '100%',
-                                            width: '100%',
-                                            objectFit: 'cover',
-                                            borderRadius: 12,
-                                            display: 'block',
-                                        }}
-                                    />
-                                </MotionImageListItem>
-                            );
-                        })}
-                    </ImageList>
-                </InView>
+                    {PORTFOLIO_IMAGES.map((img, i) => {
+                        const isHero = i % 3 === 1;
+                        return (
+                            <ImageListItem
+                                key={img.id}
+                                rows={isHero ? 2 : 1}
+                                cols={1}
+                            >
+                                <img
+                                    src={img.src}
+                                    alt={img.alt}
+                                    loading="lazy"
+                                    decoding="async"
+                                    style={{
+                                        height: '100%',
+                                        width: '100%',
+                                        objectFit: 'cover',
+                                        objectPosition: img.position ?? 'center',
+                                        borderRadius: 12,
+                                        display: 'block',
+                                    }}
+                                />
+                            </ImageListItem>
+                        );
+                    })}
+                </ImageList>
 
                 {PORTFOLIO_IMAGES.length === 0 && (
                     <Typography sx={{ py: 8, textAlign: 'center', fontSize: '0.875rem', color: 'text.secondary' }}>

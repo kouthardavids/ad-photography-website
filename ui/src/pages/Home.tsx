@@ -1,49 +1,145 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import Nav from "../components/Nav";
 
-const SLIDES = [
+interface Slide {
+    src: string;
+    alt: string;
+    position?: string;
+    mobilePosition?: string;
+    mobileSrc?: string;
+    hideOnMobile?: boolean;
+    mobileOnly?: boolean;
+    offsetX?: string;
+}
+
+const SLIDES: Slide[] = [
     {
-        src: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=2400",
-        alt: "Bride laughing in golden light, veil caught mid-air",
-    },
-    {
-        src: "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?q=80&w=2400",
-        alt: "Couple walking hand in hand at sunset",
-    },
-    {
-        src: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?q=80&w=2400",
+        src: "./images/DSC_0818.jpg",
         alt: "Close portrait, soft window light",
+        mobilePosition: "60% center",
+        mobileOnly: true,
     },
     {
-        src: "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?q=80&w=2400",
+        src: "./images/landscape/landscape4.jpg",
+        alt: "Close portrait, soft window light",
+        position: "center 5%",
+        mobilePosition: "40% center",
+        offsetX: "0.5%",
+    },
+    {
+        src: "./images/DSC_0395.webp",
+        alt: "Bride laughing in golden light, veil caught mid-air",
+        position: "center center",
+        mobilePosition: "70% center",
+        mobileOnly: true,
+    },
+    {
+        src: "./images/landscape/landscape3.jpg",
         alt: "Wedding party candid moment, natural light",
+        mobilePosition: "50% center",
+        hideOnMobile: true,
+        position: "center 37%",
+        offsetX: "-7.2%",
+    },
+    {
+        src: "./images/landscape/landscape.jpg",
+        alt: "Bride laughing in golden light, veil caught mid-air",
+        position: "center center",
+        mobilePosition: "50% center",
+        hideOnMobile: true,
+    },
+    {
+        src: "./images/DSC_0630.webp",
+        alt: "Bride laughing in golden light, veil caught mid-air",
+        position: "center center",
+        mobilePosition: "50% center",
+        mobileOnly: true,
+    },
+    {
+        src: "/images/landscape/landscape2.jpg",
+        alt: "Couple walking hand in hand at sunset",
+        position: "center 20%",
+        mobilePosition: "60% center",
+        offsetX: "-12%",
     },
 ];
 
-const SLIDE_DURATION = 5400;
+const SLIDE_DURATION = 4500;
+
+function useIsMobile(breakpoint = 639) {
+    const query = `(max-width: ${breakpoint}px)`;
+    const [isMobile, setIsMobile] = useState(
+        () => typeof window !== "undefined" && window.matchMedia(query).matches
+    );
+
+    useEffect(() => {
+        const mql = window.matchMedia(query);
+        const onChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+        mql.addEventListener("change", onChange);
+        return () => mql.removeEventListener("change", onChange);
+    }, [query]);
+
+    return isMobile;
+}
 
 export default function Home() {
     const [index, setIndex] = useState(0);
-    const [paused, setPaused] = useState(false);
+    const [paused] = useState(false);
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const [ready, setReady] = useState(false);
 
-    const goTo = useCallback((next: number) => {
-        setIndex(((next % SLIDES.length) + SLIDES.length) % SLIDES.length);
-    }, []);
+    const isMobile = useIsMobile();
+    const slides = useMemo(
+        () =>
+            SLIDES.filter((s) => {
+                if (isMobile) return !s.hideOnMobile;
+                return !s.mobileOnly;
+            }),
+        [isMobile]
+    );
 
     useEffect(() => {
-        if (paused) return;
+        setIndex(0);
+    }, [slides]);
+
+    const goTo = useCallback(
+        (next: number) => {
+            setIndex(((next % slides.length) + slides.length) % slides.length);
+        },
+        [slides]
+    );
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const first = new Image();
+        first.src = slides[0].src;
+        first.decode().catch(() => { }).then(() => {
+            if (!cancelled) setReady(true);
+        });
+
+        slides.slice(1).forEach((s) => {
+            const img = new Image();
+            img.src = s.src;
+            img.decode().catch(() => { });
+        });
+
+        return () => { cancelled = true; };
+    }, [slides]);
+
+    useEffect(() => {
+        if (paused || !ready) return;
 
         timerRef.current = setInterval(() => {
-            setIndex((i) => (i + 1) % SLIDES.length);
+            setIndex((i) => (i + 1) % slides.length);
         }, SLIDE_DURATION);
 
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
         };
-    }, [paused]);
+    }, [paused, ready, slides]);
 
     return (
         <section
@@ -53,25 +149,38 @@ export default function Home() {
             aria-roledescription="carousel"
             aria-label="AD Photography — featured work"
         >
-            <AnimatePresence initial={false}>
-                <motion.div
-                    key={index}
-                    className="absolute inset-0"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 1.4, ease: "easeInOut" }}
-                >
-                    <motion.img
-                        src={SLIDES[index].src}
-                        alt={SLIDES[index].alt}
-                        className="h-full w-full object-cover"
-                        initial={{ scale: 1 }}
-                        animate={{ scale: 1.08 }}
-                        transition={{ duration: SLIDE_DURATION / 1000 + 1.4, ease: "linear" }}
-                    />
-                </motion.div>
-            </AnimatePresence>
+            {ready && (
+                <AnimatePresence>
+                    <motion.div
+                        key={index}
+                        className="absolute inset-0"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 1.4, ease: "easeInOut" }}
+                    >
+                        <picture className="block h-full w-full overflow-hidden">
+                            {slides[index].mobileSrc && (
+                                <source media="(max-width: 639px)" srcSet={slides[index].mobileSrc} />
+                            )}
+                            <motion.img
+                                src={slides[index].src}
+                                alt={slides[index].alt}
+                                className="h-full w-full object-cover [object-position:var(--mpos,center)] sm:relative sm:w-[115%] sm:max-w-none sm:left-[var(--x,-7.5%)] sm:[object-position:var(--pos,center)]"
+                                style={{
+                                    willChange: "transform",
+                                    ["--pos" as string]: slides[index].position ?? "center",
+                                    ["--mpos" as string]: slides[index].mobilePosition ?? "center",
+                                    ["--x" as string]: slides[index].offsetX ?? "-7.5%",
+                                }}
+                                initial={{ scale: 1 }}
+                                animate={{ scale: 1.08 }}
+                                transition={{ duration: SLIDE_DURATION / 1000 + 1.4, ease: "linear" }}
+                            />
+                        </picture>
+                    </motion.div>
+                </AnimatePresence>
+            )}
 
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 via-black/10 to-black/50" />
 
@@ -113,7 +222,7 @@ export default function Home() {
             </div>
 
             <div className="absolute bottom-8 left-1/2 z-20 flex -translate-x-1/2 gap-2">
-                {SLIDES.map((_, i) => (
+                {slides.map((_, i) => (
                     <button
                         key={i}
                         onClick={() => goTo(i)}

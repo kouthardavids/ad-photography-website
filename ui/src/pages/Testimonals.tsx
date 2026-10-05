@@ -1,40 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Link } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-
-const TESTIMONIALS = [
-    {
-        quote: "We didn't get photos of our wedding, we got photos of how it actually felt.",
-        name: "Megan & Tiaan",
-        detail: "Married in Franschhoek, Nov 2025",
-    },
-    {
-        quote: "First time I ever forgot a camera was in the room. The gallery still makes me tear up.",
-        name: "Zainab R.",
-        detail: "Engagement session, Sea Point",
-    },
-    {
-        quote: "Our timeline changed three times that day and AD just kept up, calm the whole way through.",
-        name: "Kyle & Reece",
-        detail: "Married in Stellenbosch, Feb 2026",
-    },
-    {
-        quote: "My mother, who hates every photo of herself, asked for a print of one of these.",
-        name: "Nadia P.",
-        detail: "Family portrait session, Kalk Bay",
-    },
-    {
-        quote: "Booked with low expectations after a bad first photographer. Completely different level.",
-        name: "Werner & Lise",
-        detail: "Married in Paarl, Sep 2025",
-    },
-    {
-        quote: "We asked for documentary, not staged, and that's exactly what came back to us.",
-        name: "Amy & Josh",
-        detail: "Married in Hermanus, Apr 2026",
-    },
-];
+import { TESTIMONIALS } from "../lib/data";
 
 function useInView<T extends HTMLElement>(threshold = 0.1) {
     const ref = useRef<T | null>(null);
@@ -109,7 +76,6 @@ export default function Testimonials() {
 
     return (
         <div data-nav-theme="light" id="testimonials">
-
             <FadeUp>
                 <section className="bg-[#F3EEE6] px-6 py-16 text-center">
                     <FadeUp>
@@ -121,7 +87,7 @@ export default function Testimonials() {
                                 className="mt-3 text-3xl font-light tracking-wide sm:text-5xl"
                                 style={{ fontFamily: "'Cormorant Garamond', serif" }}
                             >
-                                From behind the lens, in their words
+                                From behind the lens
                             </h1>
                         </section>
                     </FadeUp>

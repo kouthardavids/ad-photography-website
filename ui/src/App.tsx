@@ -6,6 +6,7 @@ import About from "./pages/About";
 import Footer from "./components/Footer";
 import Booking from "./pages/Booking";
 import Testimonials from "./pages/Testimonals";
+import Dasboard from "./pages/Dashboard";
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
         />
 
         <Route path="/booking" element={<Booking />} />
+        <Route path="/dashboard" element={<Dasboard />} />
       </Routes>
     </BrowserRouter>
   );
