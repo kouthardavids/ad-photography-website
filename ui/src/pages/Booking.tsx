@@ -48,10 +48,10 @@ function StepIndicator({ step }: { step: number }) {
                     <div className="flex flex-col items-center gap-2">
                         <div
                             className={`flex h-8 w-8 items-center justify-center rounded-full border transition-colors duration-300 ${i < step
-                                    ? "border-neutral-900 bg-neutral-900 text-white"
-                                    : i === step
-                                        ? "border-neutral-900 bg-white"
-                                        : "border-neutral-200 bg-white"
+                                ? "border-neutral-900 bg-neutral-900 text-white"
+                                : i === step
+                                    ? "border-neutral-900 bg-white"
+                                    : "border-neutral-200 bg-white"
                                 }`}
                         >
                             {i < step ? (
@@ -65,8 +65,8 @@ function StepIndicator({ step }: { step: number }) {
 
                         <span
                             className={`hidden text-[10px] font-medium uppercase tracking-[0.15em] sm:block ${i <= step
-                                    ? "text-neutral-900"
-                                    : "text-neutral-300"
+                                ? "text-neutral-900"
+                                : "text-neutral-300"
                                 }`}
                         >
                             {label}
@@ -76,8 +76,8 @@ function StepIndicator({ step }: { step: number }) {
                     {i < STEPS.length - 1 && (
                         <div
                             className={`mx-2 h-px flex-1 transition-colors duration-300 ${i < step
-                                    ? "bg-neutral-900"
-                                    : "bg-neutral-200"
+                                ? "bg-neutral-900"
+                                : "bg-neutral-200"
                                 }`}
                             style={{ marginBottom: "20px" }}
                         />
@@ -368,15 +368,15 @@ export default function Booking() {
                                                 setPackageId(pkg.id)
                                             }
                                             className={`flex w-full items-center justify-between rounded-lg border px-6 py-5 text-left transition ${packageId === pkg.id
-                                                    ? "border-neutral-900 bg-white shadow-sm"
-                                                    : "border-neutral-200 bg-white hover:border-neutral-300"
+                                                ? "border-neutral-900 bg-white shadow-sm"
+                                                : "border-neutral-200 bg-white hover:border-neutral-300"
                                                 }`}
                                         >
                                             <div className="flex min-w-0 items-center gap-4">
                                                 <span
                                                     className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${packageId === pkg.id
-                                                            ? "border-neutral-900 bg-neutral-900"
-                                                            : "border-neutral-300"
+                                                        ? "border-neutral-900 bg-neutral-900"
+                                                        : "border-neutral-300"
                                                         }`}
                                                 >
                                                     {packageId === pkg.id && (
@@ -500,10 +500,10 @@ export default function Booking() {
                                                                 : undefined
                                                         }
                                                         className={`rounded-md border px-4 py-2 text-sm transition disabled:cursor-not-allowed ${booked
-                                                                ? "border-neutral-200 bg-neutral-100 text-neutral-300 line-through"
-                                                                : active
-                                                                    ? "border-neutral-900 bg-neutral-900 text-white"
-                                                                    : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-900"
+                                                            ? "border-neutral-200 bg-neutral-100 text-neutral-300 line-through"
+                                                            : active
+                                                                ? "border-neutral-900 bg-neutral-900 text-white"
+                                                                : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-900"
                                                             }`}
                                                     >
                                                         {t}
@@ -536,7 +536,7 @@ export default function Booking() {
                                     </label>
 
                                     <input
-                                        placeholder="Jane Doe"
+                                        placeholder="Enter your full name"
                                         value={form.name}
                                         onChange={(e) =>
                                             setForm({
@@ -561,7 +561,7 @@ export default function Booking() {
 
                                         <input
                                             type="email"
-                                            placeholder="jane@email.com"
+                                            placeholder="Enter your email"
                                             value={form.email}
                                             onChange={(e) =>
                                                 setForm({
@@ -576,9 +576,9 @@ export default function Booking() {
                                                 }))
                                             }
                                             className={`${inputClass} pl-11 ${touched.email &&
-                                                    !emailValid
-                                                    ? "border-red-400 focus:border-red-500"
-                                                    : ""
+                                                !emailValid
+                                                ? "border-red-400 focus:border-red-500"
+                                                : ""
                                                 }`}
                                         />
                                     </div>
@@ -606,7 +606,7 @@ export default function Booking() {
 
                                     <input
                                         type="tel"
-                                        placeholder="082 123 4567"
+                                        placeholder="e.g 082 123 4567"
                                         value={form.phone}
                                         onChange={(e) =>
                                             setForm({
@@ -621,9 +621,9 @@ export default function Booking() {
                                             }))
                                         }
                                         className={`${inputClass} pl-11 ${touched.phone &&
-                                                !phoneValid
-                                                ? "border-red-400 focus:border-red-500"
-                                                : ""
+                                            !phoneValid
+                                            ? "border-red-400 focus:border-red-500"
+                                            : ""
                                             }`}
                                     />
                                 </div>
@@ -677,9 +677,9 @@ export default function Booking() {
                                 setStep((s) => Math.max(0, s - 1))
                             }
                             className={`text-xs uppercase tracking-[0.15em] text-neutral-500 transition hover:text-neutral-900 ${step === 0 ||
-                                    submitStatus !== "idle"
-                                    ? "invisible"
-                                    : ""
+                                submitStatus !== "idle"
+                                ? "invisible"
+                                : ""
                                 }`}
                         >
                             ← Back
@@ -703,8 +703,8 @@ export default function Booking() {
                                     submitStatus === "loading"
                                 }
                                 className={`flex h-[46px] items-center justify-center overflow-hidden border text-[11px] font-medium uppercase tracking-[0.2em] text-white transition-all duration-500 disabled:cursor-not-allowed disabled:border-neutral-300 disabled:bg-neutral-300 ${submitStatus === "success"
-                                        ? "w-[46px] rounded-full border-emerald-600 bg-emerald-600"
-                                        : "w-[190px] border-neutral-900 bg-neutral-900"
+                                    ? "w-[46px] rounded-full border-emerald-600 bg-emerald-600"
+                                    : "w-[190px] border-neutral-900 bg-neutral-900"
                                     } ${submitStatus !== "idle"
                                         ? "pointer-events-none"
                                         : ""
