@@ -61,8 +61,8 @@ router.post("/auth/login", async (req, res) => {
 
         res.cookie("auth_token", token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
+            secure: true,
+            sameSite: "none",
             maxAge: 1000 * 60 * 60 * 24,
         });
 
@@ -96,8 +96,8 @@ router.get("/auth/me", requireAuth, async (req, res) => {
 router.post("/auth/logout", (req, res) => {
     res.clearCookie("auth_token", {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        secure: true,
+        sameSite: "none",
     });
 
     return res.json({
