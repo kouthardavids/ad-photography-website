@@ -140,7 +140,7 @@ export const FAQS: { q: string; a: string }[] = [
 ];
 
 export const TESTIMONIALS: Testimonial[] = [
-    { name: "~ Amara & Sipho", quote: "Extremely happy🎆🥹❤️ Thank you so much ❤️❤️. You really out done yourself 🥹❤️" },
+    { name: "~ Styling and Chic Nufeya", quote: "Extremely happy🎆🥹❤️ Thank you so much ❤️❤️. You really out done yourself 🥹❤️" },
     { name: "~ N@sh", quote: "Yeeeees it's amazing 😍 I'm so happy 😊😁" },
     { name: "~ Shannon", quote: "Gorgeous photos ! Thank you so much for today ❤️❤️❤️" },
 ];
