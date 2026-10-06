@@ -19,14 +19,53 @@ export interface PortfolioImage {
 }
 
 export const PORTFOLIO_IMAGES: PortfolioImage[] = [
-    { id: "p1", type: "Wedding", src: "/images/DSC_0811 2.jpg", alt: "Bride laughing, veil in motion", position: "center 45%" },
-    { id: "p2", type: "Portrait", src: "/images/DSC_0734.jpg", alt: "Close portrait, soft window light", position: "75% center", mobilePosition: "35% center" },
-    { id: "p3", type: "Family", src: "./images/images.png", alt: "Family walking on the beach" },
-    { id: "p4", type: "Event", src: "./images/DSC_0509.webp", alt: "Guests toasting at reception", position: "center 29%" },
-    { id: "p5", type: "Wedding", src: "./images/DSC_0512.webp", alt: "Couple walking at sunset" },
-    { id: "p6", type: "Portrait", src: "./images/DSC_0570.webp", alt: "Studio portrait, dramatic light", position: "center 5%" },
-    { id: "p7", type: "Family", src: "./images/DSC_0834.jpg", alt: "Family portrait outdoors" },
-
+    {
+        id: "p1",
+        type: "Wedding",
+        src: "/images/DSC_0811 2.webp",
+        alt: "Bride laughing, veil in motion",
+        position: "center 45%",
+    },
+    {
+        id: "p2",
+        type: "Portrait",
+        src: "/images/DSC_0734.webp",
+        alt: "Close portrait, soft window light",
+        position: "75% center",
+        mobilePosition: "35% center",
+    },
+    {
+        id: "p3",
+        type: "Family",
+        src: "/images/images.png",
+        alt: "Family walking on the beach",
+    },
+    {
+        id: "p4",
+        type: "Event",
+        src: "/images/DSC_0509.webp",
+        alt: "Guests toasting at reception",
+        position: "center 29%",
+    },
+    {
+        id: "p5",
+        type: "Wedding",
+        src: "/images/DSC_0512.webp",
+        alt: "Couple walking at sunset",
+    },
+    {
+        id: "p6",
+        type: "Portrait",
+        src: "/images/DSC_0570.webp",
+        alt: "Studio portrait, dramatic light",
+        position: "center 5%",
+    },
+    {
+        id: "p7",
+        type: "Family",
+        src: "/images/DSC_0834.webp",
+        alt: "Family portrait outdoors",
+    },
 ];
 
 export interface Package {
