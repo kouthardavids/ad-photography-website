@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { AuthenticatedRequest } from "../types/auth.js";
 import jwt from "jsonwebtoken";
 
 export const requireAuth = (
@@ -33,7 +34,7 @@ export const requireAuth = (
             });
         }
 
-        req.user = {
+        (req as AuthenticatedRequest).user = {
             id: String(decoded.id),
             email: String(decoded.email),
             role: String(decoded.role),

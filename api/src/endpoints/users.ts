@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { getUserByEmail } from "../repo/users.js";
 import { requireAuth } from "../middleware/auth.js";
+import { AuthenticatedRequest } from "../types/auth.js";
 
 dotenv.config();
 
@@ -54,10 +55,9 @@ router.post("/auth/login", async (req, res) => {
             },
             process.env.JWT_SECRET!,
             {
-                expiresIn: "8h"
+                expiresIn: "8h",
             }
         );
-
 
         res.cookie("auth_token", token, {
             httpOnly: true,
@@ -85,9 +85,11 @@ router.post("/auth/login", async (req, res) => {
 });
 
 router.get("/auth/me", requireAuth, async (req, res) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+
     return res.json({
         success: true,
-        data: req.user,
+        data: authenticatedReq.user,
     });
 });
 
