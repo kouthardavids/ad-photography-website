@@ -62,7 +62,7 @@ function TestimonialContent({
 }: {
     quote: string;
     name: string;
-    detail: string;
+    detail?: string;
 }) {
     return (
         <>
@@ -72,7 +72,11 @@ function TestimonialContent({
             <p className="mt-4 text-[14px] font-medium text-neutral-900 sm:mt-6 sm:text-sm">
                 {name}
             </p>
-            <p className="mt-0.5 text-[10px] text-neutral-500 sm:text-xs">{detail}</p>
+            {detail && (
+                <p className="mt-0.5 text-[10px] text-neutral-500 sm:text-xs">
+                    {detail}
+                </p>
+            )}
         </>
     );
 }
