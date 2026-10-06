@@ -39,7 +39,7 @@ type View = "overview" | "deliver" | "website";
 const NAV: { id: View; label: string }[] = [
     { id: "overview", label: "Overview" },
     // { id: "deliver", label: "Send photos" },
-    { id: "website", label: "Website Edit" },
+    // { id: "website", label: "Website Edit" },
 ];
 
 const OWNER = "Aneesa";
@@ -68,6 +68,20 @@ function greeting() {
     if (h < 18) return "Good afternoon";
     return "Good evening";
 }
+
+const formatWhatsAppNumber = (phone: string) => {
+    const digits = phone.replace(/\D/g, "");
+
+    if (digits.startsWith("0")) {
+        return `27${digits.slice(1)}`;
+    }
+
+    if (digits.startsWith("27")) {
+        return digits;
+    }
+
+    return digits;
+};
 
 const serif = { fontFamily: "'Cormorant Garamond', serif" } as const;
 
@@ -626,13 +640,13 @@ export default function Dashboard() {
                                                                 onClick={(e) => e.stopPropagation()}
                                                             >
                                                                 <a
-                                                                    href={`https://wa.me/${booking.phone}`}
+                                                                    href={`https://wa.me/${formatWhatsAppNumber(booking.phone)}`}
                                                                     target="_blank"
                                                                     rel="noreferrer"
                                                                     className="inline-flex items-center gap-2 rounded-lg border border-neutral-300 px-4 py-2 text-sm transition hover:border-neutral-900"
                                                                 >
                                                                     <MessageCircle size={15} />
-                                                                    WhatsApp
+                                                                    Contact {formatSAPhone(booking.phone)}
                                                                 </a>
 
                                                                 <button
@@ -849,13 +863,13 @@ export default function Dashboard() {
                                                                 onClick={(e) => e.stopPropagation()}
                                                             >
                                                                 <a
-                                                                    href={`https://wa.me/${booking.phone}`}
+                                                                    href={`https://wa.me/${formatWhatsAppNumber(booking.phone)}`}
                                                                     target="_blank"
                                                                     rel="noreferrer"
                                                                     className="inline-flex items-center gap-2 rounded-lg border border-neutral-300 px-4 py-2 text-sm transition hover:border-neutral-900"
                                                                 >
                                                                     <MessageCircle size={15} />
-                                                                    WhatsApp
+                                                                    Contact {formatSAPhone(booking.phone)}
                                                                 </a>
 
                                                                 <button

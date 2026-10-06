@@ -130,7 +130,7 @@ export default function Nav() {
                 className={`relative flex items-center justify-between px-6 py-6 transition-colors duration-300 ease-out motion-reduce:transition-none sm:px-10 sm:py-8 ${open || !isLight ? "text-white" : "text-neutral-900"
                     }`}
             >
-                <nav className="hidden gap-8 text-[18px] font-medium uppercase tracking-[0.2em] sm:flex lg:gap-12">
+                <nav className="hidden gap-8 text-[15px] font-medium uppercase tracking-[0.2em] sm:flex lg:gap-12">
                     {NAV_LINKS_LEFT.map((link) => (
                         <a
                             key={link.id}
@@ -144,7 +144,7 @@ export default function Nav() {
                     ))}
                 </nav>
 
-                <nav className="hidden items-center gap-8 text-[20px] font-medium uppercase tracking-[0.2em] sm:flex lg:gap-12">
+                <nav className="hidden items-center gap-8 text-[15px] font-medium uppercase tracking-[0.2em] sm:flex lg:gap-12">
                     {NAV_LINKS_RIGHT.map((link) => (
                         <a
                             key={link.id}

@@ -16,11 +16,12 @@ export default function About() {
                     Hi, I'm Aneesa. Lovely to meet you.
                 </h1>
                 <p className="mt-5 text-base leading-relaxed text-neutral-700">
-                    I love photography, and I still get excited when I see a good
-                    moment coming. <strong>Ten years and hundreds of weddings in</strong>,
-                    my favourite spot is the edge of the room, watching a dad wipe his
-                    eyes or a bridesmaid crack up in the middle of a speech. I'm based
-                    in Cape Town, South Africa.
+                    With over ten years of experience and hundreds of weddings captured, I’ve
+                    had the privilege of documenting some of life’s most meaningful moments.
+                    My approach is natural and unobtrusive, allowing genuine emotions,
+                    connections, and the little moments in between to unfold beautifully.
+                    Based in Cape Town, South Africa, I’m passionate about creating timeless
+                    photographs that allow you to relive how your day truly felt.
                 </p>
                 <p className="mt-4 text-base leading-relaxed text-neutral-700">
                     I'd love to hear about your day.
