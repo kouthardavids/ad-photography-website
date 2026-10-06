@@ -123,15 +123,17 @@ router.patch("/booking/:ref/confirm", async (req: Request, res: Response) => {
         const times = await getBookingTimes(confirmedBooking.id);
 
         // Don't let an email failure undo the booking confirmation
-        sendBookingConfirmedEmail({
-            booking: confirmedBooking,
-            times,
-        }).catch((err) =>
+        try {
+            await sendBookingConfirmedEmail({
+                booking: confirmedBooking,
+                times,
+            });
+        } catch (error) {
             console.error(
                 "Failed to send booking confirmation email:",
-                err
-            )
-        );
+                error
+            );
+        }
 
         return res.json({
             success: true,
@@ -172,15 +174,17 @@ router.patch("/booking/:ref/cancel", async (req: Request, res: Response) => {
         );
 
         // Email failure should not undo the cancellation
-        sendBookingCanceledEmail({
-            booking: canceledBooking,
-            reason: reason.trim(),
-        }).catch((err) =>
+        try {
+            await sendBookingCanceledEmail({
+                booking: canceledBooking,
+                reason: reason.trim(),
+            });
+        } catch (error) {
             console.error(
                 "Failed to send cancellation email:",
-                err
-            )
-        );
+                error
+            );
+        }
 
         return res.json({
             success: true,
