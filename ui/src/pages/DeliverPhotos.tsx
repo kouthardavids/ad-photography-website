@@ -21,10 +21,9 @@ const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").repla
 export default function DeliverPhotos({ clients }: { clients: Client[] }) {
     // Won clients first, they are the ones waiting for photos
     const options = useMemo(
-        () => [...clients].sort((a, b) => Number(b.stage === "Won") - Number(a.stage === "Won")),
+        () => clients.filter((client) => client.stage === "Won"),
         [clients]
     );
-
     const [clientId, setClientId] = useState(options[0]?.id ?? "");
     const [photos, setPhotos] = useState<Picked[]>([]);
     const [note, setNote] = useState<string | null>(null);
@@ -89,8 +88,8 @@ export default function DeliverPhotos({ clients }: { clients: Client[] }) {
                                     onClick={() => pickClient(c.id)}
                                     aria-pressed={c.id === clientId}
                                     className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-sm transition ${c.id === clientId
-                                            ? "bg-neutral-900 text-white"
-                                            : "bg-white hover:bg-[#E7E1D6]"
+                                        ? "bg-neutral-900 text-white"
+                                        : "bg-white hover:bg-[#E7E1D6]"
                                         }`}
                                 >
                                     <span className="font-medium">{c.name}</span>
@@ -181,8 +180,8 @@ export default function DeliverPhotos({ clients }: { clients: Client[] }) {
                             rel="noreferrer"
                             aria-disabled={!canSend}
                             className={`inline-flex items-center gap-2 px-6 py-3 text-[11px] font-medium uppercase tracking-[0.25em] transition ${canSend
-                                    ? "bg-neutral-900 text-white hover:bg-neutral-700"
-                                    : "pointer-events-none bg-neutral-300 text-neutral-500"
+                                ? "bg-neutral-900 text-white hover:bg-neutral-700"
+                                : "pointer-events-none bg-neutral-300 text-neutral-500"
                                 }`}
                         >
                             <MessageCircle size={14} />

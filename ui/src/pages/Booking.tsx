@@ -230,7 +230,7 @@ export default function Booking() {
         <div data-nav-theme="light" className="min-h-screen bg-white">
             <div className="fixed inset-y-0 left-0 hidden w-1/3 lg:block">
                 <img
-                    src="./images/DSC_0539.webp"
+                    src="./images/DSC_0539 2.webp"
                     alt="Bride laughing in golden light"
                     className="h-full w-full object-cover"
                 />
@@ -386,10 +386,10 @@ export default function Booking() {
                                                         aria-pressed={active}
                                                         title={booked ? "Already booked" : undefined}
                                                         className={`rounded-md border px-4 py-2 text-sm transition disabled:cursor-not-allowed ${booked
-                                                                ? "border-neutral-200 bg-neutral-100 text-neutral-300 line-through"
-                                                                : active
-                                                                    ? "border-neutral-900 bg-neutral-900 text-white"
-                                                                    : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-900"
+                                                            ? "border-neutral-200 bg-neutral-100 text-neutral-300 line-through"
+                                                            : active
+                                                                ? "border-neutral-900 bg-neutral-900 text-white"
+                                                                : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-900"
                                                             }`}
                                                     >
                                                         {t}

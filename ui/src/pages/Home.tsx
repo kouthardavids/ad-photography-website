@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import Nav from "../components/Nav";
 
 interface Slide {
     src: string;
@@ -183,8 +182,6 @@ export default function Home() {
             )}
 
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 via-black/10 to-black/50" />
-
-            <Nav />
 
             <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center text-white">
                 <motion.h1

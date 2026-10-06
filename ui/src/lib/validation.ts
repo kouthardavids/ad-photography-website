@@ -14,3 +14,11 @@ export function normalizeSAPhone(input: string): string | null {
 export function isValidEmail(input: string): boolean {
     return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(input.trim());
 }
+
+export function formatSAPhone(input: string): string {
+    const phone = normalizeSAPhone(input);
+
+    if (!phone) return input;
+
+    return `+27 ${phone.slice(3, 5)} ${phone.slice(5, 8)} ${phone.slice(8)}`;
+}

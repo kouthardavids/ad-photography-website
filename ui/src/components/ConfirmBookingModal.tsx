@@ -1,19 +1,11 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, X } from "lucide-react";
-
-interface Booking {
-    id: string;
-    name: string;
-    note: string;
-    due: string;
-    phone: string;
-    email: string;
-}
+import type { DashboardBooking } from "../lib/api/booking";
 
 interface ConfirmBookingModalProps {
-    booking: Booking | null;
+    booking: DashboardBooking | null;
     onClose: () => void;
-    onConfirm: () => void;
+    onConfirm: () => void | Promise<void>;
 }
 
 const serif = {
@@ -78,11 +70,27 @@ export default function ConfirmBookingModal({
                             </p>
 
                             <p className="mt-1 text-sm text-neutral-600">
-                                {booking.note}
+                                {booking.package.name}
+                            </p>
+
+                            <p className="mt-1 text-sm text-neutral-600">
+                                {booking.package.price.toLocaleString("en-ZA", {
+                                    style: "currency",
+                                    currency: "ZAR",
+                                    maximumFractionDigits: 0,
+                                })}
                             </p>
 
                             <p className="mt-2 text-sm text-neutral-500">
-                                Due: {booking.due}
+                                Date:{" "}
+                                {new Date(
+                                    booking.date + "T00:00:00"
+                                ).toLocaleDateString("en-ZA", {
+                                    weekday: "long",
+                                    day: "numeric",
+                                    month: "long",
+                                    year: "numeric",
+                                })}
                             </p>
                         </div>
 

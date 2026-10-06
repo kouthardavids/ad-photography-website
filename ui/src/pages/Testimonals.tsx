@@ -55,6 +55,28 @@ function FadeUp({
     );
 }
 
+function TestimonialContent({
+    quote,
+    name,
+    detail,
+}: {
+    quote: string;
+    name: string;
+    detail: string;
+}) {
+    return (
+        <>
+            <p className="text-[16px] leading-relaxed text-neutral-800 sm:text-xl">
+                "{quote}"
+            </p>
+            <p className="mt-4 text-[14px] font-medium text-neutral-900 sm:mt-6 sm:text-sm">
+                {name}
+            </p>
+            <p className="mt-0.5 text-[10px] text-neutral-500 sm:text-xs">{detail}</p>
+        </>
+    );
+}
+
 export default function Testimonials() {
     const [index, setIndex] = useState(0);
     const [direction, setDirection] = useState(1);
@@ -77,14 +99,14 @@ export default function Testimonials() {
     return (
         <div data-nav-theme="light" id="testimonials">
             <FadeUp>
-                <section className="bg-[#F3EEE6] px-6 py-16 text-center">
+                <section className="bg-[#F3EEE6] px-6 py-10 text-center sm:py-16">
                     <FadeUp>
-                        <section className="mx-auto max-w-3xl px-6 pt-16 text-center">
-                            <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-neutral-500">
+                        <section className="mx-auto max-w-3xl px-6 pt-4 text-center sm:pt-16">
+                            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-500 sm:text-[11px]">
                                 Kind words
                             </p>
                             <h1
-                                className="mt-3 text-3xl font-light tracking-wide sm:text-5xl"
+                                className="mt-3 text-[26px] font-light tracking-wide sm:text-5xl"
                                 style={{ fontFamily: "'Cormorant Garamond', serif" }}
                             >
                                 From behind the lens
@@ -92,7 +114,7 @@ export default function Testimonials() {
                         </section>
                     </FadeUp>
 
-                    <section className="bg-[#F3EEE6] px-6 py-12">
+                    <section className="bg-[#F3EEE6] px-6 py-6 sm:py-12">
                         <div className="mx-auto max-w-3xl">
                             <div className="relative flex items-center gap-4 sm:gap-8">
                                 <button
@@ -103,23 +125,36 @@ export default function Testimonials() {
                                     <ChevronLeft size={18} />
                                 </button>
 
-                                <div className="relative min-h-[160px] flex-1 text-center">
+                                <div className="grid flex-1 text-center">
+                                    {TESTIMONIALS.map((t, i) => (
+                                        <div
+                                            key={i}
+                                            aria-hidden="true"
+                                            className="invisible col-start-1 row-start-1 select-none"
+                                        >
+                                            <TestimonialContent
+                                                quote={t.quote}
+                                                name={t.name}
+                                                detail={t.detail}
+                                            />
+                                        </div>
+                                    ))}
+
                                     <AnimatePresence mode="wait" custom={direction}>
                                         <motion.div
                                             key={index}
                                             custom={direction}
+                                            className="col-start-1 row-start-1"
                                             initial={{ opacity: 0, x: 24 * direction }}
                                             animate={{ opacity: 1, x: 0 }}
                                             exit={{ opacity: 0, x: -24 * direction }}
                                             transition={{ duration: 0.5, ease: "easeInOut" }}
                                         >
-                                            <p className="text-lg leading-relaxed text-neutral-800 sm:text-xl">
-                                                "{current.quote}"
-                                            </p>
-                                            <p className="mt-6 text-sm font-medium text-neutral-900">
-                                                {current.name}
-                                            </p>
-                                            <p className="mt-0.5 text-xs text-neutral-500">{current.detail}</p>
+                                            <TestimonialContent
+                                                quote={current.quote}
+                                                name={current.name}
+                                                detail={current.detail}
+                                            />
                                         </motion.div>
                                     </AnimatePresence>
                                 </div>
@@ -133,7 +168,7 @@ export default function Testimonials() {
                                 </button>
                             </div>
 
-                            <div className="mt-8 flex items-center justify-center gap-2 sm:hidden">
+                            <div className="mt-3 flex items-center justify-center gap-2 sm:hidden">
                                 <button
                                     onClick={() => goTo(index - 1, -1)}
                                     aria-label="Previous testimonial"
@@ -150,7 +185,7 @@ export default function Testimonials() {
                                 </button>
                             </div>
 
-                            <div className="mt-8 flex justify-center gap-2">
+                            <div className="mt-4 flex justify-center gap-2 sm:mt-8">
                                 {TESTIMONIALS.map((_, i) => (
                                     <button
                                         key={i}
@@ -168,6 +203,6 @@ export default function Testimonials() {
                     </section>
                 </section>
             </FadeUp>
-        </div >
+        </div>
     );
 }

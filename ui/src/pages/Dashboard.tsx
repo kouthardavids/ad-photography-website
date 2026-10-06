@@ -1,15 +1,28 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, MotionConfig, motion } from "framer-motion";
-import { Link } from "react-router-dom";
-import { Check, MessageCircle, Plus, Search, X } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Calendar, Check, MessageCircle, Plus, Search, X } from "lucide-react";
 import DeliverPhotos from "./DeliverPhotos";
 import WebsiteImages from "./WebsiteImages";
 
 import CancelBookingModal from "../components/CancelBookingModal";
 import type { CancelReason } from "../components/CancelBookingModal";
 import ConfirmBookingModal from "../components/ConfirmBookingModal";
+import RescheduleBookingModal from "../components/RescheduleBookingModal";
 
-type Stage = "New" | "Contacted" | "Quoted" | "Won" | "Lost";
+import {
+    getPendingBookings,
+    getConfirmedBookings,
+    getCanceledBookings,
+    confirmBooking,
+    rescheduleBooking,
+    cancelBooking,
+    type DashboardBooking,
+} from "../lib/api/booking";
+import { logout } from "../lib/api/auth";
+import { formatSAPhone } from "../lib/validation";
+
+type Stage = "New" | "Contacted" | "Won" | "Lost";
 
 interface Lead {
     id: string;
@@ -21,31 +34,21 @@ interface Lead {
     lastContact: string;
 }
 
-interface FollowUp {
-    id: string;
-    name: string;
-    note: string;
-    due: string;
-    phone: string;
-    email: string;
-}
-
 type View = "overview" | "deliver" | "website";
 
 const NAV: { id: View; label: string }[] = [
     { id: "overview", label: "Overview" },
-    { id: "deliver", label: "Send photos" },
+    // { id: "deliver", label: "Send photos" },
     { id: "website", label: "Website Edit" },
 ];
 
 const OWNER = "Aneesa";
 
-const STAGES: Stage[] = ["New", "Contacted", "Quoted", "Won", "Lost"];
+const STAGES: Stage[] = ["New", "Contacted", "Won", "Lost"];
 
 const STAGE_BAR: Record<Stage, string> = {
     New: "#E7E1D6",
     Contacted: "#D8CFC0",
-    Quoted: "#B9AE9B",
     Won: "#171717",
     Lost: "#F3EEE6",
 };
@@ -53,48 +56,9 @@ const STAGE_BAR: Record<Stage, string> = {
 const STAGE_PILL: Record<Stage, string> = {
     New: "border-neutral-300 bg-white text-neutral-700",
     Contacted: "border-transparent bg-[#E7E1D6] text-neutral-800",
-    Quoted: "border-transparent bg-[#D8CFC0] text-neutral-900",
     Won: "border-transparent bg-neutral-900 text-white",
     Lost: "border-neutral-300 bg-transparent text-neutral-400",
 };
-
-const INITIAL_LEADS: Lead[] = [
-    { id: "l1", name: "Kyle & Reece", service: "Wedding, Stellenbosch", value: 14500, stage: "Quoted", phone: "27821110001", lastContact: "2 days ago" },
-    { id: "l2", name: "Nadia Petersen", service: "Family session", value: 1800, stage: "Contacted", phone: "27821110002", lastContact: "Yesterday" },
-    { id: "l3", name: "Werner & Lise", service: "Wedding, Paarl", value: 16000, stage: "Won", phone: "27821110003", lastContact: "Last week" },
-    { id: "l4", name: "Amy Joubert", service: "Portrait session", value: 1200, stage: "New", phone: "27821110004", lastContact: "Today" },
-    { id: "l5", name: "Shanon Gordon", service: "Engagement shoot", value: 2400, stage: "Quoted", phone: "27821110005", lastContact: "3 days ago" },
-    { id: "l6", name: "Lindiwe Mokoena", service: "Family session", value: 2100, stage: "Won", phone: "27821110006", lastContact: "Last week" },
-    { id: "l7", name: "Chris & Wian", service: "Wedding, Hermanus", value: 13000, stage: "Lost", phone: "27821110007", lastContact: "2 weeks ago" },
-    { id: "l8", name: "Nash Daniels", service: "Birthday event", value: 1500, stage: "New", phone: "27821110008", lastContact: "Today" },
-];
-
-const INITIAL_FOLLOW_UPS: FollowUp[] = [
-    {
-        id: "f1",
-        name: "Kyle & Reece",
-        note: "Quote sent 2 days ago, no reply yet",
-        due: "9:30 AM",
-        phone: "27821110001",
-        email: "kyle@example.com",
-    },
-    {
-        id: "f2",
-        name: "Shanon Gordon",
-        note: "Asked about a second location",
-        due: "11:00 AM",
-        phone: "27821110005",
-        email: "shanon@example.com",
-    },
-    {
-        id: "f3",
-        name: "Amy Joubert",
-        note: "New enquiry, send package details",
-        due: "2:00 PM",
-        phone: "27821110004",
-        email: "amy@example.com",
-    },
-];
 
 const rand = (n: number) => `R ${n.toLocaleString("en-ZA")}`;
 
@@ -107,21 +71,134 @@ function greeting() {
 
 const serif = { fontFamily: "'Cormorant Garamond', serif" } as const;
 
+function Pagination({
+    page,
+    totalPages,
+    onPageChange,
+}: {
+    page: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+}) {
+    if (totalPages <= 1) return null;
+
+    return (
+        <div className="mt-5 flex items-center justify-center gap-4">
+            <button
+                type="button"
+                onClick={() => onPageChange(page - 1)}
+                disabled={page === 1}
+                className="rounded-full border border-neutral-300 px-3 py-1.5 text-sm transition hover:border-neutral-900 disabled:cursor-not-allowed disabled:opacity-30"
+            >
+                Previous
+            </button>
+
+            <span className="text-sm text-neutral-500">
+                {page} / {totalPages}
+            </span>
+
+            <button
+                type="button"
+                onClick={() => onPageChange(page + 1)}
+                disabled={page === totalPages}
+                className="rounded-full border border-neutral-300 px-3 py-1.5 text-sm transition hover:border-neutral-900 disabled:cursor-not-allowed disabled:opacity-30"
+            >
+                Next
+            </button>
+        </div>
+    );
+}
+
 export default function Dashboard() {
-    const [leads, setLeads] = useState<Lead[]>(INITIAL_LEADS);
-    const [followUps, setFollowUps] = useState<FollowUp[]>(INITIAL_FOLLOW_UPS);
+    const navigate = useNavigate();
+
+    const [pendingBookings, setPendingBookings] = useState<DashboardBooking[]>([]);
+    const [confirmedBookings, setConfirmedBookings] = useState<DashboardBooking[]>([]);
+    const [canceledBookings, setCanceledBookings] = useState<DashboardBooking[]>([]);
+
+    const leads = useMemo(() => {
+        const newLeads: Lead[] = pendingBookings.map((booking) => ({
+            id: booking.ref,
+            name: booking.name,
+            service: booking.package.name,
+            value: booking.package.price,
+            stage: "New",
+            phone: booking.phone,
+            lastContact: "Pending booking",
+        }));
+
+        const contactedPending: Lead[] = pendingBookings.map((booking) => ({
+            id: `${booking.ref}-contacted`,
+            name: booking.name,
+            service: booking.package.name,
+            value: booking.package.price,
+            stage: "Contacted",
+            phone: booking.phone,
+            lastContact: "Pending booking",
+        }));
+
+        const wonLeads: Lead[] = confirmedBookings.map((booking) => ({
+            id: booking.ref,
+            name: booking.name,
+            service: booking.package.name,
+            value: booking.package.price,
+            stage: "Won",
+            phone: booking.phone,
+            lastContact: "Confirmed booking",
+        }));
+
+        const contactedConfirmed: Lead[] = confirmedBookings.map((booking) => ({
+            id: `${booking.ref}-contacted`,
+            name: booking.name,
+            service: booking.package.name,
+            value: booking.package.price,
+            stage: "Contacted",
+            phone: booking.phone,
+            lastContact: "Confirmed booking",
+        }));
+
+        const lostLeads: Lead[] = canceledBookings.map((booking) => ({
+            id: booking.ref,
+            name: booking.name,
+            service: booking.package.name,
+            value: booking.package.price,
+            stage: "Lost",
+            phone: booking.phone,
+            lastContact: "Canceled booking",
+        }));
+
+        return [
+            ...newLeads,
+            ...contactedPending,
+            ...wonLeads,
+            ...contactedConfirmed,
+            ...lostLeads,
+        ];
+    }, [pendingBookings, confirmedBookings, canceledBookings]);
+    const [loadingBookings, setLoadingBookings] = useState(true);
     const [filter, setFilter] = useState<Stage | "All">("All");
     const [query, setQuery] = useState("");
     const [adding, setAdding] = useState(false);
     const [view, setView] = useState<View>("overview");
     const [draft, setDraft] = useState({ name: "", service: "", value: "" });
 
-    const [cancelModal, setCancelModal] = useState<FollowUp | null>(null);
+    const [cancelModal, setCancelModal] = useState<DashboardBooking | null>(null);
     const [cancelReason, setCancelReason] = useState<CancelReason | "">("");
+    const [customReason, setCustomReason] = useState("");
 
     const [expandedFollowUp, setExpandedFollowUp] = useState<string | null>(null);
+    const [expandedConfirmed, setExpandedConfirmed] = useState<string | null>(null);
 
-    const [confirmModal, setConfirmModal] = useState<FollowUp | null>(null);
+    const [rescheduleModal, setRescheduleModal] = useState<DashboardBooking | null>(null);
+    const [confirmModal, setConfirmModal] = useState<DashboardBooking | null>(null);
+    const [refQuery, setRefQuery] = useState("");
+
+    const [pendingPage, setPendingPage] = useState(1);
+    const [confirmedPage, setConfirmedPage] = useState(1);
+    const [leadsPage, setLeadsPage] = useState(1);
+
+    const BOOKINGS_PER_PAGE = 5;
+    const LEADS_PER_PAGE = 8;
 
     const counts = useMemo(
         () => STAGES.map((s) => ({ stage: s, count: leads.filter((l) => l.stage === s).length })),
@@ -129,8 +206,15 @@ export default function Dashboard() {
     );
 
     const openLeads = leads.filter((l) => l.stage !== "Won" && l.stage !== "Lost").length;
-    const quotedValue = leads.filter((l) => l.stage === "Quoted").reduce((sum, l) => sum + l.value, 0);
-    const wonValue = leads.filter((l) => l.stage === "Won").reduce((sum, l) => sum + l.value, 0);
+
+    const wonValue = leads
+        .filter((l) => l.stage === "Won")
+        .reduce((sum, l) => sum + l.value, 0);
+
+    const pendingValue = pendingBookings.reduce(
+        (sum, booking) => sum + booking.package.price,
+        0
+    );
 
     const visible = leads.filter(
         (l) =>
@@ -138,31 +222,70 @@ export default function Dashboard() {
             `${l.name} ${l.service}`.toLowerCase().includes(query.toLowerCase())
     );
 
-    const addLead = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!draft.name.trim()) return;
-        setLeads((prev) => [
-            {
-                id: crypto.randomUUID(),
-                name: draft.name.trim(),
-                service: draft.service.trim() || "General enquiry",
-                value: Number(draft.value) || 0,
-                stage: "New",
-                phone: "",
-                lastContact: "Just now",
-            },
-            ...prev,
-        ]);
-        setDraft({ name: "", service: "", value: "" });
+    const leadsTotalPages = Math.max(1, Math.ceil(visible.length / LEADS_PER_PAGE));
+
+    const currentLeadsPage = Math.min(leadsPage, leadsTotalPages);
+
+    const paginatedLeads = visible.slice(
+        (currentLeadsPage - 1) * LEADS_PER_PAGE,
+        currentLeadsPage * LEADS_PER_PAGE
+    );
+
+    const filteredBookings = pendingBookings.filter((booking) =>
+        booking.ref.toLowerCase().includes(refQuery.trim().toLowerCase())
+    );
+
+    const pendingTotalPages = Math.max(
+        1,
+        Math.ceil(filteredBookings.length / BOOKINGS_PER_PAGE)
+    );
+
+    const paginatedPendingBookings = filteredBookings.slice(
+        (pendingPage - 1) * BOOKINGS_PER_PAGE,
+        pendingPage * BOOKINGS_PER_PAGE
+    );
+
+    const confirmedTotalPages = Math.max(
+        1,
+        Math.ceil(confirmedBookings.length / BOOKINGS_PER_PAGE)
+    );
+
+    const paginatedConfirmedBookings = confirmedBookings.slice(
+        (confirmedPage - 1) * BOOKINGS_PER_PAGE,
+        confirmedPage * BOOKINGS_PER_PAGE
+    );
+
+    const addLead = () => {
         setAdding(false);
     };
+
+    useEffect(() => {
+        const loadBookings = async () => {
+            try {
+                const [pending, confirmed, canceled] = await Promise.all([
+                    getPendingBookings(),
+                    getConfirmedBookings(),
+                    getCanceledBookings(),
+                ]);
+
+                setPendingBookings(pending);
+                setConfirmedBookings(confirmed);
+                setCanceledBookings(canceled);
+            } catch (error) {
+                console.error("Failed to load bookings:", error);
+            } finally {
+                setLoadingBookings(false);
+            }
+        };
+
+        loadBookings();
+    }, []);
 
     return (
         <MotionConfig reducedMotion="user">
             <div className="min-h-screen bg-[#F3EEE6] font-sans text-neutral-900">
-                {/* Header, same treatment as the site nav */}
-                <header className="flex items-center justify-between border-b border-[#D8CFC0] bg-white px-6 py-5 sm:px-10">
-                    <span className="text-2xl font-light tracking-wide" style={serif}>
+                <header className="flex items-center justify-between gap-3 border-b border-[#D8CFC0] bg-white px-4 py-4 sm:px-10 sm:py-5">
+                    <span className="whitespace-nowrap text-xl font-light tracking-wide sm:text-2xl" style={serif}>
                         AD Photography
                     </span>
                     <nav className="hidden gap-10 sm:flex" aria-label="Dashboard sections">
@@ -180,7 +303,7 @@ export default function Dashboard() {
                             </button>
                         ))}
                     </nav>
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-3 sm:gap-6">
                         <Link
                             to="/"
                             className="hidden text-[13px] font-medium uppercase tracking-[0.2em] opacity-80 transition hover:opacity-100 sm:block"
@@ -188,14 +311,29 @@ export default function Dashboard() {
                             View site
                         </Link>
                         <button
+                            type="button"
+                            onClick={async () => {
+                                try {
+                                    await logout();
+                                    navigate("/login");
+                                } catch (error) {
+                                    console.error("Logout failed:", error);
+                                }
+                            }}
+                            className="whitespace-nowrap text-[11px] font-medium uppercase tracking-[0.15em] opacity-60 transition hover:opacity-100 sm:text-[13px] sm:tracking-[0.2em]"
+                        >
+                            Log out
+                        </button>
+                        <button
                             onClick={() => {
                                 setView("overview");
                                 setAdding((a) => !a);
                             }}
-                            className="inline-flex items-center gap-2 border border-neutral-900 px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.25em] transition hover:bg-neutral-900 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
+                            aria-label={adding ? "Cancel" : "Add lead"}
+                            className="inline-flex items-center gap-2 whitespace-nowrap border border-neutral-900 px-3 py-2.5 text-[11px] font-medium uppercase tracking-[0.25em] transition hover:bg-neutral-900 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900 sm:px-5"
                         >
                             {adding ? <X size={14} /> : <Plus size={14} />}
-                            {adding ? "Cancel" : "Add lead"}
+                            <span className="hidden sm:inline">{adding ? "Cancel" : "Add lead"}</span>
                         </button>
                     </div>
                 </header>
@@ -223,12 +361,13 @@ export default function Dashboard() {
                         {greeting()}, {OWNER}
                     </h1>
                     <p className="mt-3 max-w-xl text-neutral-600">
-                        {followUps.length === 0
-                            ? "You are all caught up. No follow-ups left for today."
-                            : `${followUps.length} ${followUps.length === 1 ? "person is" : "people are"} waiting to hear from you today.`}
+                        {loadingBookings
+                            ? "Loading your bookings..."
+                            : pendingBookings.length === 0
+                                ? "You are all caught up. No pending bookings."
+                                : `${pendingBookings.length} ${pendingBookings.length === 1 ? "booking is" : "bookings are"} waiting for your attention.`}
                     </p>
 
-                    {/* Add lead form */}
                     <AnimatePresence initial={false}>
                         {adding && (
                             <motion.form
@@ -273,11 +412,10 @@ export default function Dashboard() {
                         )}
                     </AnimatePresence>
 
-                    {/* Stats, separated by hairlines instead of cards */}
                     <dl className="mt-10 grid grid-cols-1 divide-y divide-[#D8CFC0] border-y border-[#D8CFC0] sm:grid-cols-3 sm:divide-x sm:divide-y-0">
                         {[
                             { label: "Open leads", value: String(openLeads) },
-                            { label: "Quotes waiting", value: rand(quotedValue) },
+                            { label: "Quotes waiting", value: rand(pendingValue) },
                             { label: "Won this month", value: rand(wonValue) },
                         ].map((s) => (
                             <div key={s.label} className="px-0 py-6 sm:px-8 sm:first:pl-0">
@@ -289,160 +427,481 @@ export default function Dashboard() {
                         ))}
                     </dl>
 
-                    {/* Follow-ups: the main job of this page */}
                     <section className="mt-14" aria-labelledby="followups-title">
-                        <h2 id="followups-title" className="text-3xl font-light tracking-wide sm:text-4xl" style={serif}>
-                            Follow up today
-                        </h2>
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                            <h2
+                                id="followups-title"
+                                className="text-3xl font-light tracking-wide sm:text-4xl"
+                                style={serif}
+                            >
+                                Pending Requests
+                            </h2>
+
+                            <label className="relative block sm:w-64">
+                                <Search
+                                    size={15}
+                                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"
+                                />
+                                <input
+                                    value={refQuery}
+                                    onChange={(e) => {
+                                        setRefQuery(e.target.value);
+                                        setPendingPage(1);
+                                    }}
+                                    placeholder="Search by reference"
+                                    aria-label="Search bookings by reference"
+                                    className="w-full rounded-lg border border-neutral-300 bg-white py-2.5 pl-9 pr-3 text-sm uppercase outline-none placeholder:normal-case focus:border-neutral-900"
+                                />
+                            </label>
+                        </div>
 
                         <ul className="mt-6 flex flex-col gap-3">
                             <AnimatePresence initial={false}>
-                                {followUps.map((f) => (
+                                {loadingBookings ? (
                                     <motion.li
-                                        key={f.id}
-                                        layout
-                                        exit={{ opacity: 0, x: 40 }}
-                                        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                                        className="overflow-hidden rounded-xl bg-white"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        className="rounded-xl bg-white p-5 text-sm text-neutral-500"
                                     >
-                                        {/* Main card */}
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                setExpandedFollowUp(
-                                                    expandedFollowUp === f.id ? null : f.id
-                                                )
-                                            }
-                                            className="w-full p-5 text-left"
-                                        >
-                                            <div className="flex items-center justify-between gap-4">
-                                                <div className="flex items-baseline gap-5">
-                                                    <span className="w-20 shrink-0 text-sm text-neutral-500">
-                                                        {f.due}
-                                                    </span>
-
-                                                    <div>
-                                                        <p className="font-medium">{f.name}</p>
-                                                        <p className="text-sm text-neutral-600">
-                                                            {f.note}
-                                                        </p>
-                                                    </div>
-                                                </div>
-
-                                                <motion.span
-                                                    animate={{
-                                                        rotate: expandedFollowUp === f.id ? 180 : 0,
-                                                    }}
-                                                    transition={{ duration: 0.2 }}
-                                                    className="text-neutral-400"
-                                                >
-                                                    ↓
-                                                </motion.span>
-                                            </div>
-                                        </button>
-
-                                        {/* Expanded details */}
-                                        <AnimatePresence initial={false}>
-                                            {expandedFollowUp === f.id && (
-                                                <motion.div
-                                                    initial={{ height: 0, opacity: 0 }}
-                                                    animate={{ height: "auto", opacity: 1 }}
-                                                    exit={{ height: 0, opacity: 0 }}
-                                                    transition={{
-                                                        duration: 0.3,
-                                                        ease: [0.16, 1, 0.3, 1],
-                                                    }}
-                                                    className="overflow-hidden"
-                                                >
-                                                    <div className="border-t border-[#E7E1D6] px-5 pb-5 pt-5">
-                                                        <div className="grid gap-4 sm:grid-cols-2">
-                                                            <div>
-                                                                <p className="text-xs uppercase tracking-[0.15em] text-neutral-400">
-                                                                    Email
-                                                                </p>
-                                                                <p className="mt-1 text-sm">
-                                                                    {f.email}
-                                                                </p>
-                                                            </div>
-
-                                                            <div>
-                                                                <p className="text-xs uppercase tracking-[0.15em] text-neutral-400">
-                                                                    Phone
-                                                                </p>
-                                                                <p className="mt-1 text-sm">
-                                                                    +{f.phone}
-                                                                </p>
-                                                            </div>
-
-                                                            <div>
-                                                                <p className="text-xs uppercase tracking-[0.15em] text-neutral-400">
-                                                                    Follow-up
-                                                                </p>
-                                                                <p className="mt-1 text-sm">
-                                                                    {f.note}
-                                                                </p>
-                                                            </div>
-
-                                                            <div>
-                                                                <p className="text-xs uppercase tracking-[0.15em] text-neutral-400">
-                                                                    Due
-                                                                </p>
-                                                                <p className="mt-1 text-sm">
-                                                                    {f.due}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Actions */}
-                                                        <div
-                                                            className="mt-5 flex flex-wrap gap-2"
-                                                            onClick={(e) => e.stopPropagation()}
-                                                        >
-                                                            <a
-                                                                href={`https://wa.me/${f.phone}`}
-                                                                target="_blank"
-                                                                rel="noreferrer"
-                                                                className="inline-flex items-center gap-2 rounded-lg border border-neutral-300 px-4 py-2 text-sm transition hover:border-neutral-900"
-                                                            >
-                                                                <MessageCircle size={15} />
-                                                                WhatsApp
-                                                            </a>
-
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => setConfirmModal(f)}
-                                                                className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm text-white transition hover:bg-green-700"
-                                                            >
-                                                                <Check size={15} />
-                                                                Confirm
-                                                            </button>
-
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    setCancelModal(f);
-                                                                    setCancelReason("");
-                                                                }}
-                                                                className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm text-white transition hover:bg-red-700"
-                                                            >
-                                                                <X size={15} />
-                                                                Cancel
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
+                                        Loading pending bookings...
                                     </motion.li>
-                                ))}
+                                ) : pendingBookings.length === 0 ? (
+                                    <motion.li
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        className="rounded-xl bg-white p-8 text-center text-sm text-neutral-500"
+                                    >
+                                        No pending bookings.
+                                    </motion.li>
+                                ) : filteredBookings.length === 0 ? (
+                                    <motion.li
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        className="rounded-xl bg-white p-8 text-center text-sm text-neutral-500"
+                                    >
+                                        No pending booking matches "{refQuery.trim()}".
+                                    </motion.li>
+                                ) : (
+                                    paginatedPendingBookings.map((booking) => (
+                                        <motion.li
+                                            key={booking.ref}
+                                            layout
+                                            exit={{ opacity: 0, x: 40 }}
+                                            transition={{
+                                                duration: 0.35,
+                                                ease: [0.16, 1, 0.3, 1],
+                                            }}
+                                            className="overflow-hidden rounded-xl bg-white"
+                                        >
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setExpandedFollowUp(
+                                                        expandedFollowUp === booking.ref ? null : booking.ref
+                                                    )
+                                                }
+                                                className="w-full p-4 text-left sm:p-5"
+                                            >
+                                                <div className="flex items-center justify-between gap-3 sm:gap-4">
+                                                    <div className="flex min-w-0 flex-1 items-baseline gap-3 sm:gap-5">
+                                                        <span className="w-12 shrink-0 text-sm text-neutral-500 sm:w-20">
+                                                            {new Date(booking.date + "T00:00:00").toLocaleDateString("en-ZA", {
+                                                                day: "numeric",
+                                                                month: "short",
+                                                            })}
+                                                        </span>
+
+                                                        <div className="min-w-0">
+                                                            <p className="truncate font-medium">{booking.name}</p>
+
+                                                            <p className="truncate text-sm text-neutral-600">
+                                                                {booking.package.name} · {rand(booking.package.price)}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+
+                                                    <motion.span
+                                                        animate={{ rotate: expandedFollowUp === booking.ref ? 180 : 0 }}
+                                                        transition={{ duration: 0.2 }}
+                                                        className="shrink-0 text-neutral-400"
+                                                    >
+                                                        ↓
+                                                    </motion.span>
+                                                </div>
+                                            </button>
+
+                                            <AnimatePresence initial={false}>
+                                                {expandedFollowUp === booking.ref && (
+                                                    <motion.div
+                                                        initial={{ height: 0, opacity: 0 }}
+                                                        animate={{ height: "auto", opacity: 1 }}
+                                                        exit={{ height: 0, opacity: 0 }}
+                                                        transition={{
+                                                            duration: 0.3,
+                                                            ease: [0.16, 1, 0.3, 1],
+                                                        }}
+                                                        className="overflow-hidden"
+                                                    >
+                                                        <div className="border-t border-[#E7E1D6] px-5 pb-5 pt-5">
+                                                            <div className="grid gap-4 sm:grid-cols-2">
+                                                                <div>
+                                                                    <p className="text-xs uppercase tracking-[0.15em] text-neutral-400">
+                                                                        Booking reference
+                                                                    </p>
+                                                                    <p className="mt-1 text-sm">
+                                                                        {booking.ref}
+                                                                    </p>
+                                                                </div>
+
+                                                                <div>
+                                                                    <p className="text-xs uppercase tracking-[0.15em] text-neutral-400">
+                                                                        Package
+                                                                    </p>
+                                                                    <p className="mt-1 text-sm">
+                                                                        {booking.package.name} —{" "}
+                                                                        {rand(booking.package.price)}
+                                                                    </p>
+                                                                </div>
+
+                                                                <div>
+                                                                    <p className="text-xs uppercase tracking-[0.15em] text-neutral-400">
+                                                                        Email
+                                                                    </p>
+                                                                    <p className="mt-1 text-sm">
+                                                                        {booking.email}
+                                                                    </p>
+                                                                </div>
+
+                                                                <div>
+                                                                    <p className="text-xs uppercase tracking-[0.15em] text-neutral-400">
+                                                                        Phone
+                                                                    </p>
+                                                                    <p className="mt-1 text-sm">
+                                                                        {formatSAPhone(booking.phone)}
+                                                                    </p>
+                                                                </div>
+
+                                                                <div>
+                                                                    <p className="text-xs uppercase tracking-[0.15em] text-neutral-400">
+                                                                        Booking date
+                                                                    </p>
+                                                                    <p className="mt-1 text-sm">
+                                                                        {new Date(
+                                                                            booking.date + "T00:00:00"
+                                                                        ).toLocaleDateString("en-ZA", {
+                                                                            weekday: "long",
+                                                                            day: "numeric",
+                                                                            month: "long",
+                                                                            year: "numeric",
+                                                                        })}
+                                                                    </p>
+                                                                </div>
+
+                                                                <div>
+                                                                    <p className="text-xs uppercase tracking-[0.15em] text-neutral-400">
+                                                                        Selected times
+                                                                    </p>
+
+                                                                    <p className="mt-1 text-sm">
+                                                                        {booking.times.length > 0
+                                                                            ? booking.times.join(", ")
+                                                                            : "No times selected."}
+                                                                    </p>
+                                                                </div>
+
+                                                                <div>
+                                                                    <p className="text-xs uppercase tracking-[0.15em] text-neutral-400">
+                                                                        Notes
+                                                                    </p>
+                                                                    <p className="mt-1 text-sm">
+                                                                        {booking.notes ||
+                                                                            "No notes provided."}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Actions */}
+                                                            <div
+                                                                className="mt-5 flex flex-wrap gap-2"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                <a
+                                                                    href={`https://wa.me/${booking.phone}`}
+                                                                    target="_blank"
+                                                                    rel="noreferrer"
+                                                                    className="inline-flex items-center gap-2 rounded-lg border border-neutral-300 px-4 py-2 text-sm transition hover:border-neutral-900"
+                                                                >
+                                                                    <MessageCircle size={15} />
+                                                                    WhatsApp
+                                                                </a>
+
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        setConfirmModal(booking)
+                                                                    }
+                                                                    className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm text-white transition hover:bg-green-700"
+                                                                >
+                                                                    <Check size={15} />
+                                                                    Confirm
+                                                                </button>
+
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setCancelModal(booking);
+                                                                        setCancelReason("");
+                                                                        setCustomReason("");
+                                                                    }}
+                                                                    className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm text-white transition hover:bg-red-700"
+                                                                >
+                                                                    <X size={15} />
+                                                                    Cancel
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </motion.li>
+                                    ))
+                                )}
                             </AnimatePresence>
                         </ul>
+                        <Pagination
+                            page={pendingPage}
+                            totalPages={pendingTotalPages}
+                            onPageChange={setPendingPage}
+                        />
+                    </section>
+
+                    <section className="mt-20" aria-labelledby="confirmed-title">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                            <h2
+                                id="confirmed-title"
+                                className="text-3xl font-light tracking-wide sm:text-4xl"
+                                style={serif}
+                            >
+                                Confirmed Bookings
+                            </h2>
+                        </div>
+
+                        <ul className="mt-6 flex flex-col gap-3">
+                            <AnimatePresence initial={false}>
+                                {confirmedBookings.length === 0 ? (
+                                    <motion.li
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        className="rounded-xl bg-white p-8 text-center text-sm text-neutral-500"
+                                    >
+                                        No confirmed bookings yet.
+                                    </motion.li>
+                                ) : (
+                                    paginatedConfirmedBookings.map((booking) => (
+                                        <motion.li
+                                            key={booking.ref}
+                                            layout
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="overflow-hidden rounded-xl bg-white"
+                                        >
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setExpandedConfirmed(
+                                                        expandedConfirmed === booking.ref ? null : booking.ref
+                                                    )
+                                                }
+                                                className="w-full p-4 text-left sm:p-5"
+                                            >
+                                                <div className="flex items-center justify-between gap-3 sm:gap-4">
+                                                    <div className="flex min-w-0 flex-1 items-baseline gap-3 sm:gap-5">
+                                                        <span className="w-12 shrink-0 text-sm text-neutral-500 sm:w-20">
+                                                            {new Date(booking.date + "T00:00:00").toLocaleDateString("en-ZA", {
+                                                                day: "numeric",
+                                                                month: "short",
+                                                            })}
+                                                        </span>
+
+                                                        <div className="min-w-0">
+                                                            <p className="truncate font-medium">{booking.name}</p>
+
+                                                            <p className="truncate text-sm text-neutral-600">
+                                                                {booking.package.name} · {rand(booking.package.price)}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex shrink-0 items-center gap-3 sm:gap-4">
+                                                        <span className="hidden text-xs font-medium uppercase tracking-[0.12em] text-green-600 sm:inline">
+                                                            Confirmed
+                                                        </span>
+                                                        <span
+                                                            role="img"
+                                                            aria-label="Confirmed"
+                                                            className="h-2 w-2 rounded-full bg-green-600 sm:hidden"
+                                                        />
+
+                                                        <motion.span
+                                                            animate={{ rotate: expandedConfirmed === booking.ref ? 180 : 0 }}
+                                                            transition={{ duration: 0.2 }}
+                                                            className="text-neutral-400"
+                                                        >
+                                                            ↓
+                                                        </motion.span>
+                                                    </div>
+                                                </div>
+                                            </button>
+
+                                            <AnimatePresence initial={false}>
+                                                {expandedConfirmed === booking.ref && (
+                                                    <motion.div
+                                                        initial={{ height: 0, opacity: 0 }}
+                                                        animate={{ height: "auto", opacity: 1 }}
+                                                        exit={{ height: 0, opacity: 0 }}
+                                                        transition={{
+                                                            duration: 0.3,
+                                                            ease: [0.16, 1, 0.3, 1],
+                                                        }}
+                                                        className="overflow-hidden"
+                                                    >
+                                                        <div className="border-t border-[#E7E1D6] px-5 pb-5 pt-5">
+                                                            <div className="grid gap-4 sm:grid-cols-2">
+                                                                <div>
+                                                                    <p className="text-xs uppercase tracking-[0.15em] text-neutral-400">
+                                                                        Booking reference
+                                                                    </p>
+                                                                    <p className="mt-1 text-sm">
+                                                                        {booking.ref}
+                                                                    </p>
+                                                                </div>
+
+                                                                <div>
+                                                                    <p className="text-xs uppercase tracking-[0.15em] text-neutral-400">
+                                                                        Package
+                                                                    </p>
+                                                                    <p className="mt-1 text-sm">
+                                                                        {booking.package.name} —{" "}
+                                                                        {rand(booking.package.price)}
+                                                                    </p>
+                                                                </div>
+
+                                                                <div>
+                                                                    <p className="text-xs uppercase tracking-[0.15em] text-neutral-400">
+                                                                        Email
+                                                                    </p>
+                                                                    <p className="mt-1 text-sm">
+                                                                        {booking.email}
+                                                                    </p>
+                                                                </div>
+
+                                                                <div>
+                                                                    <p className="text-xs uppercase tracking-[0.15em] text-neutral-400">
+                                                                        Phone
+                                                                    </p>
+                                                                    <p className="mt-1 text-sm">
+                                                                        {formatSAPhone(booking.phone)}
+                                                                    </p>
+                                                                </div>
+
+                                                                <div>
+                                                                    <p className="text-xs uppercase tracking-[0.15em] text-neutral-400">
+                                                                        Booking date
+                                                                    </p>
+                                                                    <p className="mt-1 text-sm">
+                                                                        {new Date(
+                                                                            booking.date + "T00:00:00"
+                                                                        ).toLocaleDateString("en-ZA", {
+                                                                            weekday: "long",
+                                                                            day: "numeric",
+                                                                            month: "long",
+                                                                            year: "numeric",
+                                                                        })}
+                                                                    </p>
+                                                                </div>
+
+                                                                <div>
+                                                                    <p className="text-xs uppercase tracking-[0.15em] text-neutral-400">
+                                                                        Selected times
+                                                                    </p>
+
+                                                                    <p className="mt-1 text-sm">
+                                                                        {booking.times.length > 0
+                                                                            ? booking.times.join(", ")
+                                                                            : "No times selected."}
+                                                                    </p>
+                                                                </div>
+
+                                                                <div>
+                                                                    <p className="text-xs uppercase tracking-[0.15em] text-neutral-400">
+                                                                        Notes
+                                                                    </p>
+                                                                    <p className="mt-1 text-sm">
+                                                                        {booking.notes ||
+                                                                            "No notes provided."}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Actions */}
+                                                            <div
+                                                                className="mt-5 flex flex-wrap gap-2"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                <a
+                                                                    href={`https://wa.me/${booking.phone}`}
+                                                                    target="_blank"
+                                                                    rel="noreferrer"
+                                                                    className="inline-flex items-center gap-2 rounded-lg border border-neutral-300 px-4 py-2 text-sm transition hover:border-neutral-900"
+                                                                >
+                                                                    <MessageCircle size={15} />
+                                                                    WhatsApp
+                                                                </a>
+
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setRescheduleModal(booking);
+                                                                    }}
+                                                                    className="inline-flex items-center gap-2 rounded-lg border border-neutral-300 px-4 py-2 text-sm transition hover:border-neutral-900"
+                                                                >
+                                                                    <Calendar size={15} />
+                                                                    Reschedule
+                                                                </button>
+
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setCancelModal(booking);
+                                                                        setCancelReason("");
+                                                                        setCustomReason("");
+                                                                    }}
+                                                                    className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm text-white transition hover:bg-red-700"
+                                                                >
+                                                                    <X size={15} />
+                                                                    Cancel booking
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </motion.li>
+                                    ))
+                                )}
+                            </AnimatePresence>
+                        </ul>
+                        <Pagination
+                            page={confirmedPage}
+                            totalPages={confirmedTotalPages}
+                            onPageChange={setConfirmedPage}
+                        />
                     </section>
 
                     {/* Pipeline */}
                     <section className="mt-14" aria-labelledby="pipeline-title">
                         <h2 id="pipeline-title" className="text-3xl font-light tracking-wide sm:text-4xl" style={serif}>
-                            Pipeline
+                            Overview
                         </h2>
 
                         <div className="mt-6 flex h-3 overflow-hidden rounded-full bg-[#E7E1D6]" role="img" aria-label="Leads by stage">
@@ -512,7 +971,7 @@ export default function Dashboard() {
                                 </p>
                             ) : (
                                 <ul className="divide-y divide-[#E7E1D6]">
-                                    {visible.map((l) => (
+                                    {paginatedLeads.map((l) => (
                                         <li
                                             key={l.id}
                                             className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1 px-5 py-4 sm:grid-cols-[1.4fr_1.4fr_auto_7rem_8rem] sm:gap-y-0"
@@ -533,60 +992,103 @@ export default function Dashboard() {
                                 </ul>
                             )}
                         </div>
+                        <Pagination
+                            page={currentLeadsPage}
+                            totalPages={leadsTotalPages}
+                            onPageChange={setLeadsPage}
+                        />
                     </section>
                 </main>
                 <CancelBookingModal
                     booking={cancelModal}
                     reason={cancelReason}
                     setReason={setCancelReason}
+                    customReason={customReason}
+                    setCustomReason={setCustomReason}
                     onClose={() => {
                         setCancelModal(null);
                         setCancelReason("");
+                        setCustomReason("");
                     }}
-                    onCancel={() => {
+                    onCancel={async () => {
                         if (!cancelModal || !cancelReason) return;
 
-                        const subject = encodeURIComponent(
-                            `Booking Cancellation - ${cancelModal.name}`
-                        );
+                        const finalReason =
+                            cancelReason === "Other" ? customReason.trim() : cancelReason;
 
-                        const body = encodeURIComponent(
-                            `Hi ${cancelModal.name},
+                        if (!finalReason) return;
 
-                            We regret to inform you that your booking has been cancelled.
+                        try {
+                            await cancelBooking(cancelModal.ref, finalReason);
 
-                            Reason: ${cancelReason}
+                            setPendingBookings((prev) =>
+                                prev.filter((booking) => booking.ref !== cancelModal.ref)
+                            );
 
-                            If you have any questions, please contact us.
+                            setConfirmedBookings((prev) =>
+                                prev.filter((booking) => booking.ref !== cancelModal.ref)
+                            );
 
-                            Kind regards,
-                            AD Photography`
-                        );
+                            setCanceledBookings((prev) => [
+                                { ...cancelModal, status: "canceled" },
+                                ...prev,
+                            ]);
 
-                        // Open the email composer
-                        window.location.href =
-                            `mailto:${cancelModal.email}?subject=${subject}&body=${body}`;
-
-                        // Remove the booking from follow-ups
-                        setFollowUps((prev) =>
-                            prev.filter((f) => f.id !== cancelModal.id)
-                        );
-
-                        setCancelModal(null);
-                        setCancelReason("");
+                            setCancelModal(null);
+                            setCancelReason("");
+                            setCustomReason("");
+                        } catch (error) {
+                            console.error("Failed to cancel booking:", error);
+                        }
                     }}
                 />
                 <ConfirmBookingModal
                     booking={confirmModal}
                     onClose={() => setConfirmModal(null)}
-                    onConfirm={() => {
+                    onConfirm={async () => {
                         if (!confirmModal) return;
 
-                        setFollowUps((prev) =>
-                            prev.filter((f) => f.id !== confirmModal.id)
+                        try {
+                            const result = await confirmBooking(confirmModal.ref);
+
+                            setConfirmedBookings((prev) => [
+                                result.data,
+                                ...prev,
+                            ]);
+
+                            setPendingBookings((prev) =>
+                                prev.filter(
+                                    (booking) => booking.ref !== confirmModal.ref
+                                )
+                            );
+
+                            setConfirmModal(null);
+                        } catch (error) {
+                            console.error("Failed to confirm booking:", error);
+                        }
+                    }}
+                />
+                <RescheduleBookingModal
+                    booking={rescheduleModal}
+                    onClose={() => setRescheduleModal(null)}
+                    onReschedule={async (date, times) => {
+                        if (!rescheduleModal) return;
+
+                        const result = await rescheduleBooking(
+                            rescheduleModal.ref,
+                            date,
+                            times
                         );
 
-                        setConfirmModal(null);
+                        setConfirmedBookings((prev) =>
+                            prev.map((booking) =>
+                                booking.ref === rescheduleModal.ref
+                                    ? result.data
+                                    : booking
+                            )
+                        );
+
+                        setRescheduleModal(null);
                     }}
                 />
             </div>

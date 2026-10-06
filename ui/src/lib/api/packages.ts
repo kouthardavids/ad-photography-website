@@ -10,8 +10,10 @@ type PackagesResponse = {
     data: Package[];
 };
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export const getPackages = async () => {
-    const response = await fetch("http://localhost:8000/api/packages");
+    const response = await fetch(`${API_URL}/api/packages`);
 
     const result: PackagesResponse = await response.json();
 

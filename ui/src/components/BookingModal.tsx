@@ -54,6 +54,10 @@ export default function BookingModal({ open, email, onClose }: BookingModalProps
                     <span className="font-medium text-neutral-900">{email}</span>.
                 </p>
 
+                <p className="mt-3 text-xs leading-relaxed text-neutral-400">
+                    Please check your spam or junk folder if you don't see the email in your inbox.
+                </p>
+
                 <button
                     onClick={onClose}
                     className="mt-8 w-full border border-neutral-900 bg-neutral-900 px-8 py-3 text-[11px] font-medium uppercase tracking-[0.2em] text-white transition hover:bg-neutral-800"

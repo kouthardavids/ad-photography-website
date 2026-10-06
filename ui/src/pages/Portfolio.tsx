@@ -12,6 +12,7 @@ export default function Portfolio() {
     const theme = useTheme();
     const isSmUp = useMediaQuery(theme.breakpoints.up('sm'));
     const isMdUp = useMediaQuery(theme.breakpoints.up('md'));
+    const isMobile = !isSmUp;
 
     const cols = 3;
     const rowHeight = isMdUp ? 280 : isSmUp ? 200 : 140;
@@ -58,6 +59,9 @@ export default function Portfolio() {
                 >
                     {PORTFOLIO_IMAGES.map((img, i) => {
                         const isHero = i % 3 === 1;
+                        const position =
+                            (isMobile ? img.mobilePosition : undefined) ?? img.position ?? 'center';
+
                         return (
                             <ImageListItem
                                 key={img.id}
@@ -73,7 +77,7 @@ export default function Portfolio() {
                                         height: '100%',
                                         width: '100%',
                                         objectFit: 'cover',
-                                        objectPosition: img.position ?? 'center',
+                                        objectPosition: position,
                                         borderRadius: 12,
                                         display: 'block',
                                     }}
