@@ -70,9 +70,17 @@ router.post("/booking", bookingLimiter, async (req: Request, res: Response) => {
         });
 
         // Not awaited on purpose: a mail problem should never fail a saved booking
-        sendBookingPendingEmail({ booking: newBooking, times }).catch((err) =>
-            console.error("Failed to send booking email:", err)
-        );
+        try {
+            await sendBookingPendingEmail({
+                booking: newBooking,
+                times,
+            });
+        } catch (error) {
+            console.error(
+                "Failed to send booking email:",
+                error
+            );
+        }
 
         res.status(201).json({ success: true, data: newBooking });
     } catch (error: any) {
