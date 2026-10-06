@@ -15,27 +15,27 @@ interface Slide {
 
 const SLIDES: Slide[] = [
     {
-        src: "./images/DSC_0818.jpg",
+        src: "/images/DSC_0818.webp",
         alt: "Close portrait, soft window light",
         mobilePosition: "60% center",
         mobileOnly: true,
     },
     {
-        src: "./images/landscape/landscape4.jpg",
+        src: "/images/landscape/landscape4.webp",
         alt: "Close portrait, soft window light",
         position: "center 5%",
         mobilePosition: "40% center",
         offsetX: "0.5%",
     },
     {
-        src: "./images/DSC_0395.webp",
+        src: "/images/DSC_0395.webp",
         alt: "Bride laughing in golden light, veil caught mid-air",
         position: "center center",
         mobilePosition: "70% center",
         mobileOnly: true,
     },
     {
-        src: "./images/landscape/landscape3.jpg",
+        src: "/images/landscape/landscape3.webp",
         alt: "Wedding party candid moment, natural light",
         mobilePosition: "50% center",
         hideOnMobile: true,
@@ -43,28 +43,27 @@ const SLIDES: Slide[] = [
         offsetX: "-7.2%",
     },
     {
-        src: "./images/landscape/landscape.jpg",
+        src: "/images/landscape/landscape.webp",
         alt: "Bride laughing in golden light, veil caught mid-air",
         position: "center center",
         mobilePosition: "50% center",
         hideOnMobile: true,
     },
     {
-        src: "./images/DSC_0630.webp",
+        src: "/images/DSC_0630.webp",
         alt: "Bride laughing in golden light, veil caught mid-air",
         position: "center center",
         mobilePosition: "50% center",
         mobileOnly: true,
     },
     {
-        src: "/images/landscape/landscape2.jpg",
+        src: "/images/landscape/landscape2.webp",
         alt: "Couple walking hand in hand at sunset",
         position: "center 20%",
         mobilePosition: "60% center",
         offsetX: "-12%",
     },
 ];
-
 const SLIDE_DURATION = 4500;
 
 function useIsMobile(breakpoint = 639) {
@@ -115,17 +114,16 @@ export default function Home() {
 
         const first = new Image();
         first.src = slides[0].src;
+
         first.decode().catch(() => { }).then(() => {
-            if (!cancelled) setReady(true);
+            if (!cancelled) {
+                setReady(true);
+            }
         });
 
-        slides.slice(1).forEach((s) => {
-            const img = new Image();
-            img.src = s.src;
-            img.decode().catch(() => { });
-        });
-
-        return () => { cancelled = true; };
+        return () => {
+            cancelled = true;
+        };
     }, [slides]);
 
     useEffect(() => {
